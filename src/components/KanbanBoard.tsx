@@ -41,7 +41,7 @@ interface KanbanBoardProps {
   onDeleteColumn: (id: string) => void;
   onReorderColumns: (columns: Column[]) => void;
   onCreateTask: (columnId: string, title: string, description?: string) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newIndex: number) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;

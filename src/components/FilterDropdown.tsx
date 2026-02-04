@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, Calendar, Tag, Check } from 'lucide-react';
+import { Filter, Calendar, Tag, Check, Flag, ArrowDown, Minus, ArrowUp, AlertTriangle } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -8,15 +8,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from './ui/dropdown-menu';
-import { Label } from '../types';
+import { Label, TaskPriority, PRIORITY_CONFIG } from '../types';
 import { DueDateFilter } from '../hooks/useTaskFilter';
 
 interface FilterDropdownProps {
   labels: Label[];
   selectedLabelIds: string[];
   dueDateFilter: DueDateFilter;
+  selectedPriorities: TaskPriority[];
   onToggleLabelFilter: (labelId: string) => void;
   onDueDateFilterChange: (filter: DueDateFilter) => void;
+  onTogglePriorityFilter: (priority: TaskPriority) => void;
   activeFilterCount: number;
 }
 
@@ -28,12 +30,24 @@ const dueDateOptions: { value: DueDateFilter; label: string; description?: strin
   { value: 'no-date', label: 'No date', description: 'Without due date' },
 ];
 
+const priorityIcons = {
+  none: Flag,
+  low: ArrowDown,
+  medium: Minus,
+  high: ArrowUp,
+  critical: AlertTriangle,
+};
+
+const priorities: TaskPriority[] = ['critical', 'high', 'medium', 'low', 'none'];
+
 export function FilterDropdown({
   labels,
   selectedLabelIds,
   dueDateFilter,
+  selectedPriorities,
   onToggleLabelFilter,
   onDueDateFilterChange,
+  onTogglePriorityFilter,
   activeFilterCount,
 }: FilterDropdownProps) {
   return (
@@ -50,6 +64,40 @@ export function FilterDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
+        {/* Priority Section */}
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Flag className="h-4 w-4" />
+          Priority
+        </DropdownMenuLabel>
+        <div className="px-2 pb-2">
+          {priorities.map((priority) => {
+            const config = PRIORITY_CONFIG[priority];
+            const Icon = priorityIcons[priority];
+            const isSelected = selectedPriorities.includes(priority);
+
+            return (
+              <button
+                key={priority}
+                onClick={() => onTogglePriorityFilter(priority)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors ${
+                  isSelected ? 'bg-primary/10' : 'hover:bg-accent'
+                }`}
+              >
+                <Icon 
+                  className="h-4 w-4 flex-shrink-0" 
+                  style={{ color: priority !== 'none' ? config.color : undefined }}
+                />
+                <span className="flex-1 text-left">{config.label}</span>
+                {isSelected && (
+                  <Check className="h-4 w-4 text-primary flex-shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <DropdownMenuSeparator />
+
         {/* Due Date Section */}
         <DropdownMenuLabel className="flex items-center gap-2">
           <Calendar className="h-4 w-4" />

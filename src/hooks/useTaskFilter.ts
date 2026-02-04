@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Task } from '../types';
+import { Task, TaskPriority } from '../types';
 
 export type DueDateFilter = 'all' | 'overdue' | 'today' | 'this-week' | 'no-date';
 
@@ -7,6 +7,7 @@ export interface TaskFilters {
   searchQuery: string;
   labelIds: string[];
   dueDateFilter: DueDateFilter;
+  priorities: TaskPriority[];
 }
 
 const STORAGE_KEY = 'bordy-task-filters';
@@ -15,6 +16,7 @@ const defaultFilters: TaskFilters = {
   searchQuery: '',
   labelIds: [],
   dueDateFilter: 'all',
+  priorities: [],
 };
 
 // Helper functions for date comparisons
@@ -67,6 +69,7 @@ export function useTaskFilter(boardId?: string) {
           searchQuery: parsed.searchQuery || '',
           labelIds: parsed.labelIds || [],
           dueDateFilter: parsed.dueDateFilter || 'all',
+          priorities: parsed.priorities || [],
         });
       } else {
         setFilters(defaultFilters);
@@ -105,6 +108,15 @@ export function useTaskFilter(boardId?: string) {
     setFilters(prev => ({ ...prev, dueDateFilter: filter }));
   }, []);
 
+  const togglePriorityFilter = useCallback((priority: TaskPriority) => {
+    setFilters(prev => ({
+      ...prev,
+      priorities: prev.priorities.includes(priority)
+        ? prev.priorities.filter(p => p !== priority)
+        : [...prev.priorities, priority],
+    }));
+  }, []);
+
   const clearFilters = useCallback(() => {
     setFilters(defaultFilters);
   }, []);
@@ -122,6 +134,17 @@ export function useTaskFilter(boardId?: string) {
 
   const clearDueDateFilter = useCallback(() => {
     setFilters(prev => ({ ...prev, dueDateFilter: 'all' }));
+  }, []);
+
+  const removePriorityFilter = useCallback((priority: TaskPriority) => {
+    setFilters(prev => ({
+      ...prev,
+      priorities: prev.priorities.filter(p => p !== priority),
+    }));
+  }, []);
+
+  const clearPriorityFilters = useCallback(() => {
+    setFilters(prev => ({ ...prev, priorities: [] }));
   }, []);
 
   const filterTasks = useCallback((tasks: Task[]): Task[] => {
@@ -158,6 +181,12 @@ export function useTaskFilter(boardId?: string) {
         }
       }
 
+      // 4. Priority filter (OR logic - task must have one of selected priorities)
+      if (filters.priorities.length > 0) {
+        const taskPriority = task.priority || 'none';
+        if (!filters.priorities.includes(taskPriority)) return false;
+      }
+
       return true;
     });
   }, [filters]);
@@ -166,7 +195,8 @@ export function useTaskFilter(boardId?: string) {
     return (
       filters.searchQuery !== '' ||
       filters.labelIds.length > 0 ||
-      filters.dueDateFilter !== 'all'
+      filters.dueDateFilter !== 'all' ||
+      filters.priorities.length > 0
     );
   }, [filters]);
 
@@ -175,6 +205,7 @@ export function useTaskFilter(boardId?: string) {
     if (filters.searchQuery) count++;
     count += filters.labelIds.length;
     if (filters.dueDateFilter !== 'all') count++;
+    count += filters.priorities.length;
     return count;
   }, [filters]);
 
@@ -183,10 +214,13 @@ export function useTaskFilter(boardId?: string) {
     setSearchQuery,
     toggleLabelFilter,
     setDueDateFilter,
+    togglePriorityFilter,
     clearFilters,
     clearSearch,
     removeLabelFilter,
     clearDueDateFilter,
+    removePriorityFilter,
+    clearPriorityFilters,
     filterTasks,
     hasActiveFilters,
     activeFilterCount,

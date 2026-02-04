@@ -1,3 +1,14 @@
+export type TaskPriority = 'none' | 'low' | 'medium' | 'high' | 'critical';
+
+export const PRIORITY_CONFIG = {
+  none:     { label: 'None',     color: '#6b7280', bgClass: 'bg-gray-100 dark:bg-gray-800', textClass: 'text-gray-600 dark:text-gray-400', borderClass: '', order: 0 },
+  low:      { label: 'Low',      color: '#22c55e', bgClass: 'bg-green-100 dark:bg-green-900/30', textClass: 'text-green-600 dark:text-green-400', borderClass: 'border-l-4 border-l-green-500', order: 1 },
+  medium:   { label: 'Medium',   color: '#eab308', bgClass: 'bg-yellow-100 dark:bg-yellow-900/30', textClass: 'text-yellow-600 dark:text-yellow-400', borderClass: 'border-l-4 border-l-yellow-500', order: 2 },
+  high:     { label: 'High',     color: '#f97316', bgClass: 'bg-orange-100 dark:bg-orange-900/30', textClass: 'text-orange-600 dark:text-orange-400', borderClass: 'border-l-4 border-l-orange-500', order: 3 },
+  critical: { label: 'Critical', color: '#ef4444', bgClass: 'bg-red-100 dark:bg-red-900/30', textClass: 'text-red-600 dark:text-red-400', borderClass: 'border-l-4 border-l-red-500', order: 4 },
+} as const;
+
+
 export interface Label {
   id: string;
   name: string;
@@ -23,6 +34,7 @@ export interface Task {
   subtasks: Subtask[];
   createdAt: number;
   updatedAt: number;
+  priority: TaskPriority;
 }
 
 export interface Column {
@@ -62,11 +74,13 @@ export const LABEL_COLORS = [
 ] as const;
 
 // Template types
+// Template types
 export interface TemplateTask {
   title: string;
   description?: string;
   columnIndex: number;  // reference to column by index
   labelIndices: number[];  // reference to labels by index
+  priority?: TaskPriority;  // optional priority for template tasks
 }
 
 export interface TemplateColumn {

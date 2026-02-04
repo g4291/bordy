@@ -14,7 +14,7 @@ import {
   FileStack,
   Keyboard,
 } from 'lucide-react';
-import { Board, Label, BoardTemplate } from '../types';
+import { Board, Label, BoardTemplate, TaskPriority } from '../types';
 import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -73,6 +73,8 @@ interface HeaderProps {
   onClearSearch: () => void;
   onRemoveLabelFilter: (labelId: string) => void;
   onClearDueDateFilter: () => void;
+  onTogglePriorityFilter: (priority: TaskPriority) => void;
+  onRemovePriorityFilter: (priority: TaskPriority) => void;
   activeFilterCount: number;
   filteredTaskCount?: number;
   totalTaskCount?: number;
@@ -118,6 +120,8 @@ export function Header({
   onClearSearch,
   onRemoveLabelFilter,
   onClearDueDateFilter,
+  onTogglePriorityFilter,
+  onRemovePriorityFilter,
   activeFilterCount,
   filteredTaskCount,
   totalTaskCount,
@@ -291,6 +295,8 @@ export function Header({
               selectedLabelIds={filters.labelIds}
               dueDateFilter={filters.dueDateFilter}
               onToggleLabelFilter={onToggleLabelFilter}
+              selectedPriorities={filters.priorities}
+              onTogglePriorityFilter={onTogglePriorityFilter}
               onDueDateFilterChange={onDueDateFilterChange}
               activeFilterCount={activeFilterCount}
             />
@@ -376,6 +382,7 @@ export function Header({
           labels={labels}
           onClearSearch={onClearSearch}
           onRemoveLabelFilter={onRemoveLabelFilter}
+          onRemovePriorityFilter={onRemovePriorityFilter}
           onClearDueDateFilter={onClearDueDateFilter}
           onClearAll={onClearFilters}
           filteredCount={filteredTaskCount}

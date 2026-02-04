@@ -32,7 +32,7 @@ interface KanbanColumnProps {
   onUpdateColumn: (id: string, title: string) => void;
   onDeleteColumn: (id: string) => void;
   onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
   onDeleteTask: (id: string) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;

@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Search, Calendar } from 'lucide-react';
+import { X, Search, Calendar, ArrowDown, Minus, ArrowUp, AlertTriangle, Flag } from 'lucide-react';
 import { Button } from './ui/button';
-import { Label } from '../types';
+import { Label, TaskPriority, PRIORITY_CONFIG } from '../types';
 import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
 
 interface ActiveFiltersProps {
@@ -10,6 +10,7 @@ interface ActiveFiltersProps {
   onClearSearch: () => void;
   onRemoveLabelFilter: (labelId: string) => void;
   onClearDueDateFilter: () => void;
+  onRemovePriorityFilter: (priority: TaskPriority) => void;
   onClearAll: () => void;
   filteredCount?: number;
   totalCount?: number;
@@ -23,12 +24,21 @@ const dueDateLabels: Record<DueDateFilter, string> = {
   'no-date': 'No date',
 };
 
+const priorityIcons = {
+  none: Flag,
+  low: ArrowDown,
+  medium: Minus,
+  high: ArrowUp,
+  critical: AlertTriangle,
+};
+
 export function ActiveFilters({
   filters,
   labels,
   onClearSearch,
   onRemoveLabelFilter,
   onClearDueDateFilter,
+  onRemovePriorityFilter,
   onClearAll,
   filteredCount,
   totalCount,
@@ -36,7 +46,8 @@ export function ActiveFilters({
   const hasActiveFilters =
     filters.searchQuery !== '' ||
     filters.labelIds.length > 0 ||
-    filters.dueDateFilter !== 'all';
+    filters.dueDateFilter !== 'all' ||
+    filters.priorities.length > 0;
 
   if (!hasActiveFilters) {
     return null;
@@ -57,6 +68,26 @@ export function ActiveFilters({
           onRemove={onClearSearch}
         />
       )}
+
+      {/* Priority badges */}
+      {filters.priorities.map((priority) => {
+        const config = PRIORITY_CONFIG[priority];
+        const Icon = priorityIcons[priority];
+        return (
+          <FilterBadge
+            key={priority}
+            icon={
+              <Icon 
+                className="h-3 w-3" 
+                style={{ color: priority !== 'none' ? config.color : undefined }}
+              />
+            }
+            label={config.label}
+            onRemove={() => onRemovePriorityFilter(priority)}
+            variant={priority === 'critical' ? 'destructive' : priority === 'high' ? 'warning' : 'default'}
+          />
+        );
+      })}
 
       {/* Due date badge */}
       {filters.dueDateFilter !== 'all' && (
@@ -107,13 +138,14 @@ interface FilterBadgeProps {
   icon: React.ReactNode;
   label: string;
   onRemove: () => void;
-  variant?: 'default' | 'destructive';
+  variant?: 'default' | 'destructive' | 'warning';
 }
 
 function FilterBadge({ icon, label, onRemove, variant = 'default' }: FilterBadgeProps) {
   const variantStyles = {
     default: 'bg-background border-border hover:bg-accent',
     destructive: 'bg-red-100 dark:bg-red-500/20 border-red-300 dark:border-red-500/30 text-red-700 dark:text-red-400',
+    warning: 'bg-orange-100 dark:bg-orange-500/20 border-orange-300 dark:border-orange-500/30 text-orange-700 dark:text-orange-400',
   };
 
   return (

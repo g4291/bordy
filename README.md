@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.5.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.6.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -14,7 +14,8 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Drag & Drop** - Intuitive drag and drop for tasks and columns
 - **Labels/Tags** - Organize tasks with colored labels
 - **Due Dates** - Set and track task deadlines with visual indicators
-- **🔍 Search & Filter** - Find tasks quickly by title, description, labels, or due date
+- **🆕 Task Priority** - Set priority levels (Critical, High, Medium, Low) with visual indicators
+- **🔍 Search & Filter** - Find tasks quickly by title, description, labels, priority, or due date
 - **✅ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
 - **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
 - **Dark/Light Theme** - Switch between themes based on your preference
@@ -27,6 +28,23 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 ![Kanban Board](./screenshots/board.png)
 ![Kanban Board Dark](./screenshots/board-dark.png)
 ![Task Detail](./screenshots/task-detail.png)
+
+## 🚨 Task Priority
+
+Tasks can be assigned one of 5 priority levels:
+
+| Priority | Color | Use Case |
+|----------|-------|----------|
+| 🔴 Critical | Red | Urgent issues requiring immediate attention |
+| 🟠 High | Orange | Important tasks to complete soon |
+| 🟡 Medium | Yellow | Standard priority tasks |
+| 🟢 Low | Green | Tasks that can wait |
+| ⚪ None | Gray | No priority set |
+
+**Visual indicators:**
+- Colored left border on task cards
+- Priority badge with icon
+- Filter by priority in the filter dropdown
 
 ## ⌨️ Keyboard Shortcuts
 
@@ -101,8 +119,10 @@ src/
 │   ├── TaskCard.tsx         # Task card with view/edit dialogs
 │   ├── LabelBadge.tsx       # Label display component
 │   ├── LabelManager.tsx     # Label management dialog
+│   ├── PriorityBadge.tsx    # Priority badge component
+│   ├── PrioritySelect.tsx   # Priority dropdown selector
 │   ├── SearchBar.tsx        # Search input with debounce
-│   ├── FilterDropdown.tsx   # Filter by labels & due date
+│   ├── FilterDropdown.tsx   # Filter by labels, priority & due date
 │   ├── ActiveFilters.tsx    # Active filter badges display
 │   ├── SubtaskProgress.tsx  # Subtask progress bar
 │   ├── SubtaskList.tsx      # Subtask checklist component
@@ -112,15 +132,15 @@ src/
 ├── hooks/
 │   ├── useKanban.ts         # Board, column, task, subtask & label logic
 │   ├── useTemplates.ts      # Template management logic
-│   ├── useTaskFilter.ts     # Search & filter logic
+│   ├── useTaskFilter.ts     # Search & filter logic (incl. priority)
 │   ├── useTheme.ts          # Theme management
 │   └── useKeyboardShortcuts.ts  # Keyboard shortcuts logic
 ├── lib/
-│   ├── db.ts                # IndexedDB setup (v5)
+│   ├── db.ts                # IndexedDB setup (v6)
 │   ├── templates.ts         # Built-in board templates
 │   └── utils.ts             # Utility functions
 ├── types/
-│   └── index.ts             # TypeScript interfaces
+│   └── index.ts             # TypeScript interfaces (incl. TaskPriority)
 ├── App.tsx
 └── index.css                # Tailwind & global styles
 ```
@@ -141,18 +161,20 @@ Bordy includes powerful search and filter capabilities:
 
 - **Search** - Search tasks by title or description (with debounce)
 - **Filter by Labels** - Multi-select labels (OR logic)
+- **Filter by Priority** - Filter by Critical, High, Medium, Low, or None
 - **Filter by Due Date** - Overdue, Today, This Week, No Date
 - **Keyboard Shortcut** - Press `Ctrl+K` / `Cmd+K` or `/` to focus search
 - **Persistence** - Filters are saved per board in localStorage
 
 ## 📋 Built-in Templates
 
-Bordy comes with 8 ready-to-use templates:
+Bordy comes with 9 ready-to-use templates:
 
 | Template | Description |
 |----------|-------------|
 | 📋 Blank Board | Start fresh with empty columns |
-| 🚀 Project Management | Track project tasks from planning to completion |
+| 🚀 Demo Board | Sample board with tasks to explore features |
+| 🎯 Project Management | Track project tasks from planning to completion |
 | 🏃 Agile Sprint | Manage sprints with user stories and tasks |
 | 📢 Marketing Campaign | Plan and track marketing activities |
 | 📝 Content Calendar | Manage content creation workflow |
@@ -162,13 +184,13 @@ Bordy comes with 8 ready-to-use templates:
 
 You can also **save any board as a custom template** for reuse!
 
-## 📄 Data Format
+## 📑 Data Format
 
-Export/Import uses JSON format (version 1.3.0):
+Export/Import uses JSON format (version 1.6.0):
 
 ```json
 {
-  "version": "1.3.0",
+  "version": "1.6.0",
   "exportedAt": 1704067200000,
   "boards": [...],
   "columns": [...],
@@ -176,6 +198,7 @@ Export/Import uses JSON format (version 1.3.0):
     {
       "id": "...",
       "title": "Task name",
+      "priority": "high",
       "subtasks": [
         { "id": "...", "title": "Subtask", "completed": false }
       ],
@@ -197,10 +220,11 @@ Export/Import uses JSON format (version 1.3.0):
 - [x] Search and filter (by title, description, labels & due date)
 - [x] Subtasks / checklists
 - [x] Keyboard shortcuts
-- [ ] Task priority levels
+- [x] Task priority levels
+- [ ] Column colors
 - [ ] Task comments / activity log
 - [ ] Calendar view
-- [ ] Column colors
+- [ ] Notifications / Reminders
 
 ## 🤝 Contributing
 

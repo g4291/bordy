@@ -8,6 +8,7 @@ import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ShortcutsHelpDialog } from './components/ShortcutsHelpDialog';
 import { ToastProvider, useToast } from './components/ui/toast';
+import { Column } from './types';
 
 function AppContent() {
   const {
@@ -58,10 +59,12 @@ function AppContent() {
     setSearchQuery,
     toggleLabelFilter,
     setDueDateFilter,
+    togglePriorityFilter,
     clearFilters,
     clearSearch,
     removeLabelFilter,
     clearDueDateFilter,
+    removePriorityFilter,
     filterTasks,
     hasActiveFilters,
     activeFilterCount,
@@ -220,7 +223,7 @@ function AppContent() {
     let totalTasks = 0;
     let filteredTasks = 0;
 
-    columns.forEach((column) => {
+    columns.forEach((column: Column) => {
       const columnTasks = tasks.get(column.id) || [];
       totalTasks += columnTasks.length;
       filteredTasks += filterTasks(columnTasks).length;
@@ -285,6 +288,8 @@ function AppContent() {
         onClearSearch={clearSearch}
         onRemoveLabelFilter={removeLabelFilter}
         onClearDueDateFilter={clearDueDateFilter}
+        onTogglePriorityFilter={togglePriorityFilter}
+        onRemovePriorityFilter={removePriorityFilter}
         activeFilterCount={activeFilterCount}
         hasActiveFilters={hasActiveFilters}
         filteredTaskCount={taskStats.filtered}

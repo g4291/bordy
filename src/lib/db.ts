@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { Board, Column, Task, Label, KanbanData, BoardTemplate } from '../types';
+import { Board, Column, Task, Label, KanbanData, BoardTemplate, TaskPriority } from '../types';
 
 interface KanbanDB extends DBSchema {
   boards: {
@@ -30,7 +30,7 @@ interface KanbanDB extends DBSchema {
 }
 
 const DB_NAME = 'kanban-db';
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 
 let dbInstance: IDBPDatabase<KanbanDB> | null = null;
 
@@ -145,11 +145,13 @@ export async function getTasksByColumn(columnId: string): Promise<Task[]> {
   const db = await getDB();
   const tasks = await db.getAllFromIndex('tasks', 'by-column', columnId);
   // Ensure labelIds and subtasks exist for backward compatibility
+  // Ensure labelIds, subtasks and priority exist for backward compatibility
   return tasks
     .map(task => ({ 
       ...task, 
       labelIds: task.labelIds || [],
-      subtasks: task.subtasks || []
+      subtasks: task.subtasks || [],
+      priority: (task.priority || 'none') as TaskPriority,
     }))
     .sort((a, b) => a.order - b.order);
 }
@@ -157,10 +159,12 @@ export async function getTasksByColumn(columnId: string): Promise<Task[]> {
 export async function saveTask(task: Task): Promise<void> {
   const db = await getDB();
   // Ensure labelIds and subtasks are always arrays
+  // Ensure labelIds, subtasks and priority are always set
   await db.put('tasks', { 
     ...task, 
     labelIds: task.labelIds || [],
-    subtasks: task.subtasks || []
+    subtasks: task.subtasks || [],
+    priority: (task.priority || 'none') as TaskPriority,
   });
 }
 
@@ -200,7 +204,7 @@ export async function exportData(): Promise<KanbanData> {
     tasks,
     labels,
     exportedAt: Date.now(),
-    version: '1.3.0',
+    version: '1.6.0',
   };
 }
 
@@ -226,10 +230,12 @@ export async function importData(data: KanbanData): Promise<void> {
   
   for (const task of data.tasks) {
     // Ensure labelIds and subtasks exist for backward compatibility
+    // Ensure labelIds, subtasks and priority exist for backward compatibility
     await tx.objectStore('tasks').put({ 
       ...task, 
       labelIds: task.labelIds || [],
-      subtasks: task.subtasks || []
+      subtasks: task.subtasks || [],
+      priority: (task.priority || 'none') as TaskPriority,
     });
   }
   // Import labels if they exist (backward compatibility)

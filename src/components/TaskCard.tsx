@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, MoreVertical, AlertTriangle, Calendar, Clock, X } from 'lucide-react';
-import { Task, Label, Subtask } from '../types';
+import { GripVertical, Pencil, Trash2, MoreVertical, AlertTriangle, Calendar, Clock } from 'lucide-react';
+import { Task, Label, TaskPriority, PRIORITY_CONFIG } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -25,11 +25,13 @@ import { LabelBadge } from './LabelBadge';
 import { LabelPicker } from './LabelManager';
 import { SubtaskProgress } from './SubtaskProgress';
 import { SubtaskList } from './SubtaskList';
+import { PriorityBadge } from './PriorityBadge';
+import { PrioritySelect } from './PrioritySelect';
 
 interface TaskCardProps {
   task: Task;
   labels: Label[];
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
   onDelete: (id: string) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
@@ -56,6 +58,7 @@ export function TaskCard({
   const [editDueDate, setEditDueDate] = useState<string>(
     task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
   );
+  const [editPriority, setEditPriority] = useState<TaskPriority>(task.priority || 'none');
 
   const {
     attributes,
@@ -77,6 +80,7 @@ export function TaskCard({
     setEditDescription(task.description || '');
     setEditLabelIds(task.labelIds || []);
     setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+    setEditPriority(task.priority || 'none');
     setIsViewOpen(false);
     setIsEditing(true);
   };
@@ -88,6 +92,7 @@ export function TaskCard({
         description: editDescription.trim() || undefined,
         labelIds: editLabelIds,
         dueDate: editDueDate ? new Date(editDueDate).getTime() : undefined,
+        priority: editPriority,
       });
       setIsEditing(false);
     }
@@ -191,12 +196,18 @@ export function TaskCard({
   // Get subtasks
   const subtasks = task.subtasks || [];
 
-  // Card border style for overdue
+  // Get priority
+  const priority = task.priority || 'none';
+  const priorityConfig = PRIORITY_CONFIG[priority];
+
+  // Card border style - priority border on left, overdue/today styling takes precedence for right border
   const cardClassName = `mb-2 cursor-pointer bg-card hover:bg-accent/50 transition-colors ${
+    priorityConfig.borderClass
+  } ${
     dueDateStatus === 'overdue' 
-      ? 'border-red-500 dark:border-red-500 border-2 shadow-sm shadow-red-500/20' 
+      ? 'border-t border-r border-b border-red-500 dark:border-red-500 shadow-sm shadow-red-500/20' 
       : dueDateStatus === 'today'
-      ? 'border-orange-400 dark:border-orange-500'
+      ? 'border-t border-r border-b border-orange-400 dark:border-orange-500'
       : ''
   }`;
 
@@ -243,12 +254,18 @@ export function TaskCard({
                 </div>
               )}
 
-              {task.dueDate && dueDateStatus && (
-                <div className={`inline-flex items-center gap-1 mt-2 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}>
-                  {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
-                  <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
-                </div>
-              )}
+              {/* Priority and Due Date badges */}
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                {priority !== 'none' && (
+                  <PriorityBadge priority={priority} size="sm" />
+                )}
+                {task.dueDate && dueDateStatus && (
+                  <div className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}>
+                    {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
+                    <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
+                  </div>
+                )}
+              </div>
             </div>
             <div data-dropdown>
               <DropdownMenu>
@@ -263,15 +280,20 @@ export function TaskCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={handleOpenEdit}>
+                  <DropdownMenuItem onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenEdit();
+                  }}>
                     <Pencil className="h-4 w-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => setIsDeleting(true)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDeleting(true);
+                    }}
                     className="text-destructive"
                   >
-                    <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -291,14 +313,15 @@ export function TaskCard({
           </DialogHeader>
           
           <div className="space-y-4 py-2">
-            {/* Labels */}
-            {taskLabels.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {taskLabels.map((label) => (
-                  <LabelBadge key={label.id} label={label} />
-                ))}
-              </div>
-            )}
+            {/* Priority and Labels row */}
+            <div className="flex flex-wrap items-center gap-2">
+              {priority !== 'none' && (
+                <PriorityBadge priority={priority} size="md" />
+              )}
+              {taskLabels.map((label) => (
+                <LabelBadge key={label.id} label={label} />
+              ))}
+            </div>
 
             {/* Due date */}
             {task.dueDate && dueDateStatus && (
@@ -346,7 +369,7 @@ export function TaskCard({
             )}
 
             {/* Empty state for checklist */}
-            {subtasks.length === 0 && !task.description && (
+            {subtasks.length === 0 && !task.description && priority === 'none' && (
               <p className="text-sm text-muted-foreground italic">
                 No description or checklist items yet.
               </p>
@@ -387,6 +410,15 @@ export function TaskCard({
                 onChange={(e) => setEditDescription(e.target.value)}
                 placeholder="Task description (optional)"
                 className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            {/* Priority section */}
+            <div>
+              <label className="text-sm font-medium mb-2 block">Priority</label>
+              <PrioritySelect
+                value={editPriority}
+                onChange={setEditPriority}
               />
             </div>
 

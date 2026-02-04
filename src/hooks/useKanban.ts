@@ -119,6 +119,7 @@ export function useKanban() {
             order: 0,
             subtasks: [],
             labelIds: taskLabelIds,
+            priority: tTask.priority || 'none',
             createdAt: now,
             updatedAt: now,
           };
@@ -207,6 +208,7 @@ export function useKanban() {
       order: columnTasks.length,
       labelIds: [],
       subtasks: [],
+      priority: 'none',
       dueDate,
       createdAt: now,
       updatedAt: now,
@@ -219,7 +221,7 @@ export function useKanban() {
     });
   }, [tasks]);
 
-  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => {
     const entries = Array.from(tasks.entries());
     for (const [columnId, columnTasks] of entries) {
       const task = columnTasks.find((t: Task) => t.id === id);
@@ -517,13 +519,13 @@ export function useKanban() {
     // Label operations
     createLabel,
     updateLabel,
+    deleteLabel,
+    
     // Subtask operations
     addSubtask,
     toggleSubtask,
     deleteSubtask,
     updateSubtask,
-    
-    deleteLabel,
     
     // Export/Import
     exportData,
