@@ -14,6 +14,7 @@ import {
   FileStack,
 } from 'lucide-react';
 import { Board, Label, BoardTemplate } from '../types';
+import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
@@ -34,6 +35,9 @@ import {
 import { LabelManager } from './LabelManager';
 import { TemplatePicker } from './TemplatePicker';
 import { TemplateManager } from './TemplateManager';
+import { SearchBar } from './SearchBar';
+import { FilterDropdown } from './FilterDropdown';
+import { ActiveFilters } from './ActiveFilters';
 import { BUILT_IN_TEMPLATES } from '../lib/templates';
 
 interface HeaderProps {
@@ -59,6 +63,19 @@ interface HeaderProps {
   onUpdateTemplate: (id: string, updates: { name?: string; description?: string; icon?: string }) => Promise<void>;
   onDeleteTemplate: (id: string) => Promise<void>;
   onDuplicateTemplate: (id: string, newName?: string) => Promise<void>;
+  // Filter props
+  filters: TaskFilters;
+  onSearchChange: (query: string) => void;
+  onToggleLabelFilter: (labelId: string) => void;
+  onDueDateFilterChange: (filter: DueDateFilter) => void;
+  onClearFilters: () => void;
+  onClearSearch: () => void;
+  onRemoveLabelFilter: (labelId: string) => void;
+  onClearDueDateFilter: () => void;
+  activeFilterCount: number;
+  filteredTaskCount?: number;
+  totalTaskCount?: number;
+  hasActiveFilters: boolean;
 }
 
 export function Header({
@@ -84,6 +101,19 @@ export function Header({
   onUpdateTemplate,
   onDeleteTemplate,
   onDuplicateTemplate,
+  // Filter props
+  filters,
+  onSearchChange,
+  onToggleLabelFilter,
+  onDueDateFilterChange,
+  onClearFilters,
+  onClearSearch,
+  onRemoveLabelFilter,
+  onClearDueDateFilter,
+  activeFilterCount,
+  filteredTaskCount,
+  totalTaskCount,
+  hasActiveFilters,
 }: HeaderProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -137,18 +167,19 @@ export function Header({
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between h-14 px-4 gap-4">
+        {/* Left section: Logo, Board selector, Board actions */}
+        <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <LayoutDashboard className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Bordy</h1>
+            <h1 className="text-xl font-bold hidden sm:block">Bordy</h1>
           </div>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-[200px] justify-between">
-                {currentBoard?.title || 'Select Board'}
-                <ChevronDown className="h-4 w-4 ml-2" />
+              <Button variant="outline" className="min-w-[140px] sm:min-w-[200px] justify-between">
+                <span className="truncate">{currentBoard?.title || 'Select Board'}</span>
+                <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[200px]">
@@ -195,6 +226,7 @@ export function Header({
                 size="icon"
                 onClick={() => setIsTemplateManagerOpen(true)}
                 title="Manage templates"
+                className="hidden sm:flex"
               >
                 <FileStack className="h-4 w-4" />
               </Button>
@@ -210,7 +242,28 @@ export function Header({
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Center section: Search and Filter (only when board is selected) */}
+        {currentBoard && (
+          <div className="flex items-center gap-2 flex-1 max-w-md">
+            <SearchBar
+              value={filters.searchQuery}
+              onChange={onSearchChange}
+              placeholder="Search tasks..."
+              className="flex-1"
+            />
+            <FilterDropdown
+              labels={labels}
+              selectedLabelIds={filters.labelIds}
+              dueDateFilter={filters.dueDateFilter}
+              onToggleLabelFilter={onToggleLabelFilter}
+              onDueDateFilterChange={onDueDateFilterChange}
+              activeFilterCount={activeFilterCount}
+            />
+          </div>
+        )}
+
+        {/* Right section: Theme, Import, Export */}
+        <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -230,16 +283,59 @@ export function Header({
             onChange={handleFileChange}
             className="hidden"
           />
-          <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fileInputRef.current?.click()}
+            className="hidden sm:flex"
+          >
             <Upload className="h-4 w-4 mr-2" />
             Import
           </Button>
-          <Button variant="outline" size="sm" onClick={onExport}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExport}
+            className="hidden sm:flex"
+          >
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
+          {/* Mobile: compact import/export */}
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => fileInputRef.current?.click()}
+            className="sm:hidden"
+            title="Import"
+          >
+            <Upload className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onExport}
+            className="sm:hidden"
+            title="Export"
+          >
+            <Download className="h-4 w-4" />
+          </Button>
         </div>
       </div>
+
+      {/* Active Filters Bar - shown below header when filters are active */}
+      {currentBoard && hasActiveFilters && (
+        <ActiveFilters
+          filters={filters}
+          labels={labels}
+          onClearSearch={onClearSearch}
+          onRemoveLabelFilter={onRemoveLabelFilter}
+          onClearDueDateFilter={onClearDueDateFilter}
+          onClearAll={onClearFilters}
+          filteredCount={filteredTaskCount}
+          totalCount={totalTaskCount}
+        />
+      )}
 
       {/* Create Board Dialog */}
       <Dialog open={isCreating} onOpenChange={setIsCreating}>

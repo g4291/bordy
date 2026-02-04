@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -17,7 +17,7 @@ import {
   horizontalListSortingStrategy,
   arrayMove,
 } from '@dnd-kit/sortable';
-import { Plus } from 'lucide-react';
+import { Plus, SearchX } from 'lucide-react';
 import { Column, Task, Label } from '../types';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
@@ -44,6 +44,10 @@ interface KanbanBoardProps {
   onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newIndex: number) => void;
+  // Filter props
+  filterTasks: (tasks: Task[]) => Task[];
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
 }
 
 type DragType = 'column' | 'task' | null;
@@ -60,6 +64,9 @@ export function KanbanBoard({
   onUpdateTask,
   onDeleteTask,
   onMoveTask,
+  filterTasks,
+  hasActiveFilters,
+  onClearFilters,
 }: KanbanBoardProps) {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
@@ -83,6 +90,7 @@ export function KanbanBoard({
     }
   };
 
+  // Original tasks lookup (for drag & drop, we need to find tasks in original data)
   const findTaskById = (id: string): { task: Task; columnId: string } | null => {
     const entries = Array.from(tasks.entries());
     for (const [columnId, columnTasks] of entries) {
@@ -91,6 +99,32 @@ export function KanbanBoard({
     }
     return null;
   };
+
+  // Calculate filtered tasks for each column
+  const filteredTasksMap = useMemo(() => {
+    const map = new Map<string, Task[]>();
+    columns.forEach(column => {
+      const columnTasks = tasks.get(column.id) || [];
+      map.set(column.id, filterTasks(columnTasks));
+    });
+    return map;
+  }, [columns, tasks, filterTasks]);
+
+  // Check if no results after filtering (for showing empty state)
+  const noFilteredResults = useMemo(() => {
+    if (!hasActiveFilters) return false;
+    
+    let totalTasks = 0;
+    let filteredTasks = 0;
+    
+    columns.forEach(column => {
+      const columnTasks = tasks.get(column.id) || [];
+      totalTasks += columnTasks.length;
+      filteredTasks += (filteredTasksMap.get(column.id) || []).length;
+    });
+
+    return totalTasks > 0 && filteredTasks === 0;
+  }, [hasActiveFilters, columns, tasks, filteredTasksMap]);
 
   // Custom collision detection based on what we're dragging
   const customCollisionDetection: CollisionDetection = useCallback((args) => {
@@ -206,6 +240,20 @@ export function KanbanBoard({
 
   return (
     <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 h-full">
+      {/* No results message */}
+      {noFilteredResults && (
+        <div className="flex flex-col items-center justify-center h-[50%] text-center">
+          <SearchX className="h-16 w-16 text-muted-foreground/50 mb-4" />
+          <h3 className="text-lg font-medium mb-2">No tasks match your filters</h3>
+          <p className="text-muted-foreground mb-4">
+            Try adjusting your search or filter criteria
+          </p>
+          <Button variant="outline" onClick={onClearFilters}>
+            Clear all filters
+          </Button>
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={customCollisionDetection}
@@ -216,18 +264,20 @@ export function KanbanBoard({
           items={columns.map(c => c.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <div className="flex gap-4 h-full">
+          <div className={`flex gap-4 h-full ${noFilteredResults ? 'hidden' : ''}`}>
             {columns.map((column) => (
               <KanbanColumn
                 key={column.id}
                 column={column}
-                tasks={tasks.get(column.id) || []}
+                tasks={filteredTasksMap.get(column.id) || []}
+                allTasksCount={tasks.get(column.id)?.length || 0}
                 labels={labels}
                 onUpdateColumn={onUpdateColumn}
                 onDeleteColumn={onDeleteColumn}
                 onCreateTask={onCreateTask}
                 onUpdateTask={onUpdateTask}
                 onDeleteTask={onDeleteTask}
+                hasActiveFilters={hasActiveFilters}
               />
             ))}
 

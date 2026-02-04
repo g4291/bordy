@@ -27,23 +27,27 @@ import {
 interface KanbanColumnProps {
   column: Column;
   tasks: Task[];
+  allTasksCount?: number;  // Total tasks in column (before filtering)
   labels: Label[];
   onUpdateColumn: (id: string, title: string) => void;
   onDeleteColumn: (id: string) => void;
   onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
   onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => void;
   onDeleteTask: (id: string) => void;
+  hasActiveFilters?: boolean;
 }
 
 export function KanbanColumn({
   column,
   tasks,
+  allTasksCount,
   labels,
   onUpdateColumn,
   onDeleteColumn,
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
+  hasActiveFilters = false,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -97,6 +101,11 @@ export function KanbanColumn({
     }
   };
 
+  // Display count: show "filtered/total" when filtering, otherwise just count
+  const displayCount = hasActiveFilters && allTasksCount !== undefined && allTasksCount !== tasks.length
+    ? `${tasks.length}/${allTasksCount}`
+    : tasks.length;
+
   if (isDragging) {
     // Render placeholder when dragging
     return (
@@ -134,7 +143,7 @@ export function KanbanColumn({
             <CardTitle className="text-sm font-medium flex items-center gap-2">
               {column.title}
               <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                {tasks.length}
+                {displayCount}
               </span>
             </CardTitle>
           </div>
@@ -179,7 +188,7 @@ export function KanbanColumn({
           
           {tasks.length === 0 && (
             <div className="h-[100px] flex items-center justify-center text-muted-foreground text-sm">
-              Drop tasks here
+              {hasActiveFilters ? 'No matching tasks' : 'Drop tasks here'}
             </div>
           )}
         </div>

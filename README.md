@@ -13,6 +13,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Drag & Drop** - Intuitive drag and drop for tasks and columns
 - **Labels/Tags** - Organize tasks with colored labels
 - **Due Dates** - Set and track task deadlines with visual indicators
+- **🔍 Search & Filter** - Find tasks quickly by title, description, labels, or due date
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON
 - **100% Local Storage** - Your data never leaves your browser
@@ -80,11 +81,15 @@ src/
 │   ├── TaskCard.tsx         # Task card component
 │   ├── LabelBadge.tsx       # Label display component
 │   ├── LabelManager.tsx     # Label management dialog
+│   ├── SearchBar.tsx        # Search input with debounce
+│   ├── FilterDropdown.tsx   # Filter by labels & due date
+│   ├── ActiveFilters.tsx    # Active filter badges display
 │   ├── TemplatePicker.tsx   # Template selection component
 │   └── TemplateManager.tsx  # Template management dialog
 ├── hooks/
 │   ├── useKanban.ts         # Board, column, task & label logic
 │   ├── useTemplates.ts      # Template management logic
+│   ├── useTaskFilter.ts     # Search & filter logic
 │   └── useTheme.ts          # Theme management
 ├── lib/
 │   ├── db.ts                # IndexedDB setup
@@ -95,6 +100,16 @@ src/
 ├── App.tsx
 └── index.css                # Tailwind & global styles
 ```
+
+## 🔍 Search & Filter
+
+Bordy includes powerful search and filter capabilities:
+
+- **Search** - Search tasks by title or description (with debounce)
+- **Filter by Labels** - Multi-select labels (OR logic)
+- **Filter by Due Date** - Overdue, Today, This Week, No Date
+- **Keyboard Shortcut** - Press `Ctrl+K` / `Cmd+K` to focus search
+- **Persistence** - Filters are saved per board in localStorage
 
 ## 📋 Built-in Templates
 
@@ -136,10 +151,11 @@ Export/Import uses JSON format (version 1.2.0):
 - [x] Due dates for tasks
 - [x] Board templates (built-in)
 - [x] Custom template management
-- [ ] Search and filter (including by label & due date)
-- [ ] Keyboard shortcuts
-- [ ] Task comments
+- [x] Search and filter (by title, description, labels & due date)
 - [ ] Subtasks / checklists
+- [ ] Keyboard shortcuts (N = new task, arrows = navigate)
+- [ ] Task priority levels
+- [ ] Task comments / activity log
 
 ## 🤝 Contributing
 

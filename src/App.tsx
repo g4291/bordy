@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useKanban } from './hooks/useKanban';
 import { useTheme } from './hooks/useTheme';
 import { useTemplates } from './hooks/useTemplates';
+import { useTaskFilter } from './hooks/useTaskFilter';
 import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -43,6 +44,34 @@ function App() {
     deleteTemplate,
     duplicateTemplate,
   } = useTemplates();
+
+  const {
+    filters,
+    setSearchQuery,
+    toggleLabelFilter,
+    setDueDateFilter,
+    clearFilters,
+    clearSearch,
+    removeLabelFilter,
+    clearDueDateFilter,
+    filterTasks,
+    hasActiveFilters,
+    activeFilterCount,
+  } = useTaskFilter(currentBoard?.id);
+
+  // Calculate task stats for the active filters display
+  const taskStats = useMemo(() => {
+    let totalTasks = 0;
+    let filteredTasks = 0;
+    
+    columns.forEach(column => {
+      const columnTasks = tasks.get(column.id) || [];
+      totalTasks += columnTasks.length;
+      filteredTasks += filterTasks(columnTasks).length;
+    });
+
+    return { total: totalTasks, filtered: filteredTasks };
+  }, [columns, tasks, filterTasks]);
 
   // Handler for saving current board as template
   const handleSaveCurrentBoardAsTemplate = async (
@@ -91,6 +120,19 @@ function App() {
         onUpdateTemplate={updateTemplate}
         onDeleteTemplate={deleteTemplate}
         onDuplicateTemplate={handleDuplicateTemplate}
+        // Filter props
+        filters={filters}
+        onSearchChange={setSearchQuery}
+        onToggleLabelFilter={toggleLabelFilter}
+        onDueDateFilterChange={setDueDateFilter}
+        onClearFilters={clearFilters}
+        onClearSearch={clearSearch}
+        onRemoveLabelFilter={removeLabelFilter}
+        onClearDueDateFilter={clearDueDateFilter}
+        activeFilterCount={activeFilterCount}
+        hasActiveFilters={hasActiveFilters}
+        filteredTaskCount={taskStats.filtered}
+        totalTaskCount={taskStats.total}
       />
 
       {currentBoard ? (
@@ -106,6 +148,10 @@ function App() {
           onUpdateTask={updateTask}
           onDeleteTask={deleteTask}
           onMoveTask={moveTask}
+          // Filter props
+          filterTasks={filterTasks}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={clearFilters}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center">
