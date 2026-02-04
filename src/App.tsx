@@ -26,6 +26,10 @@ function App() {
     updateTask,
     deleteTask,
     moveTask,
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
+    updateSubtask,
     createLabel,
     updateLabel,
     deleteLabel,
@@ -152,6 +156,11 @@ function App() {
           filterTasks={filterTasks}
           hasActiveFilters={hasActiveFilters}
           onClearFilters={clearFilters}
+          // Subtask props
+          onAddSubtask={addSubtask}
+          onToggleSubtask={toggleSubtask}
+          onDeleteSubtask={deleteSubtask}
+          onUpdateSubtask={updateSubtask}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center">

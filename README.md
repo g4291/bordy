@@ -3,6 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Version](https://img.shields.io/badge/version-1.4.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -14,6 +15,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Labels/Tags** - Organize tasks with colored labels
 - **Due Dates** - Set and track task deadlines with visual indicators
 - **🔍 Search & Filter** - Find tasks quickly by title, description, labels, or due date
+- **☑️ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON
 - **100% Local Storage** - Your data never leaves your browser
@@ -23,7 +25,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 
 ![Kanban Board](./screenshots/board.png)
 ![Kanban Board Dark](./screenshots/board-dark.png)
-![Kanban Edit Task](./screenshots/task-edit.png)
+![Task Detail](./screenshots/task-detail.png)
 
 ## 🛠️ Tech Stack
 
@@ -78,21 +80,23 @@ src/
 │   ├── Header.tsx           # App header with board management
 │   ├── KanbanBoard.tsx      # Main board component
 │   ├── KanbanColumn.tsx     # Column component
-│   ├── TaskCard.tsx         # Task card component
+│   ├── TaskCard.tsx         # Task card with view/edit dialogs
 │   ├── LabelBadge.tsx       # Label display component
 │   ├── LabelManager.tsx     # Label management dialog
 │   ├── SearchBar.tsx        # Search input with debounce
 │   ├── FilterDropdown.tsx   # Filter by labels & due date
 │   ├── ActiveFilters.tsx    # Active filter badges display
+│   ├── SubtaskProgress.tsx  # Subtask progress bar
+│   ├── SubtaskList.tsx      # Subtask checklist component
 │   ├── TemplatePicker.tsx   # Template selection component
 │   └── TemplateManager.tsx  # Template management dialog
 ├── hooks/
-│   ├── useKanban.ts         # Board, column, task & label logic
+│   ├── useKanban.ts         # Board, column, task, subtask & label logic
 │   ├── useTemplates.ts      # Template management logic
 │   ├── useTaskFilter.ts     # Search & filter logic
 │   └── useTheme.ts          # Theme management
 ├── lib/
-│   ├── db.ts                # IndexedDB setup
+│   ├── db.ts                # IndexedDB setup (v5)
 │   ├── templates.ts         # Built-in board templates
 │   └── utils.ts             # Utility functions
 ├── types/
@@ -100,6 +104,16 @@ src/
 ├── App.tsx
 └── index.css                # Tailwind & global styles
 ```
+
+## ☑️ Subtasks / Checklists
+
+Tasks can have subtasks (checklist items):
+
+- **Click on a task card** to open the detail view
+- **Check/uncheck items** directly in the detail view
+- **Progress indicator** shows completion (e.g., "3/5")
+- **Progress bar** with color coding (blue = in progress, green = complete)
+- **Edit mode** allows adding, editing, and deleting subtask items
 
 ## 🔍 Search & Filter
 
@@ -130,15 +144,24 @@ You can also **save any board as a custom template** for reuse!
 
 ## 📄 Data Format
 
-Export/Import uses JSON format (version 1.2.0):
+Export/Import uses JSON format (version 1.3.0):
 
 ```json
 {
-  "version": "1.2.0",
+  "version": "1.3.0",
   "exportedAt": 1704067200000,
   "boards": [...],
   "columns": [...],
-  "tasks": [...],
+  "tasks": [
+    {
+      "id": "...",
+      "title": "Task name",
+      "subtasks": [
+        { "id": "...", "title": "Subtask", "completed": false }
+      ],
+      ...
+    }
+  ],
   "labels": [...]
 }
 ```
@@ -152,10 +175,11 @@ Export/Import uses JSON format (version 1.2.0):
 - [x] Board templates (built-in)
 - [x] Custom template management
 - [x] Search and filter (by title, description, labels & due date)
-- [ ] Subtasks / checklists
+- [x] Subtasks / checklists
 - [ ] Keyboard shortcuts (N = new task, arrows = navigate)
 - [ ] Task priority levels
 - [ ] Task comments / activity log
+- [ ] Calendar view
 
 ## 🤝 Contributing
 

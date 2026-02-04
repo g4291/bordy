@@ -5,6 +5,13 @@ export interface Label {
   boardId: string;
 }
 
+export interface Subtask {
+  id: string;
+  title: string;
+  completed: boolean;
+  createdAt: number;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -13,6 +20,7 @@ export interface Task {
   order: number;
   labelIds: string[];
   dueDate?: number;
+  subtasks: Subtask[];
   createdAt: number;
   updatedAt: number;
 }

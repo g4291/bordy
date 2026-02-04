@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Label, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
+import { Board, Column, Task, Label, Subtask, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
 import * as db from '../lib/db';
 
 export function useKanban() {
@@ -117,6 +117,7 @@ export function useKanban() {
             description: tTask.description,
             columnId: targetColumn.id,
             order: 0,
+            subtasks: [],
             labelIds: taskLabelIds,
             createdAt: now,
             updatedAt: now,
@@ -205,6 +206,7 @@ export function useKanban() {
       columnId,
       order: columnTasks.length,
       labelIds: [],
+      subtasks: [],
       dueDate,
       createdAt: now,
       updatedAt: now,
@@ -217,7 +219,7 @@ export function useKanban() {
     });
   }, [tasks]);
 
-  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => {
     const entries = Array.from(tasks.entries());
     for (const [columnId, columnTasks] of entries) {
       const task = columnTasks.find((t: Task) => t.id === id);
@@ -354,6 +356,101 @@ export function useKanban() {
     });
   }, []);
 
+  // Subtask operations
+  const addSubtask = useCallback(async (taskId: string, title: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const newSubtask: Subtask = {
+          id: uuidv4(),
+          title,
+          completed: false,
+          createdAt: Date.now(),
+        };
+        const updated: Task = {
+          ...task,
+          subtasks: [...(task.subtasks || []), newSubtask],
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return newSubtask;
+      }
+    }
+  }, [tasks]);
+
+  const toggleSubtask = useCallback(async (taskId: string, subtaskId: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          subtasks: (task.subtasks || []).map((s: Subtask) =>
+            s.id === subtaskId ? { ...s, completed: !s.completed } : s
+          ),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
+  const deleteSubtask = useCallback(async (taskId: string, subtaskId: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          subtasks: (task.subtasks || []).filter((s: Subtask) => s.id !== subtaskId),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
+  const updateSubtask = useCallback(async (taskId: string, subtaskId: string, title: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          subtasks: (task.subtasks || []).map((s: Subtask) =>
+            s.id === subtaskId ? { ...s, title } : s
+          ),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
   // Export/Import operations
   const exportData = useCallback(async () => {
     const data = await db.exportData();
@@ -420,6 +517,12 @@ export function useKanban() {
     // Label operations
     createLabel,
     updateLabel,
+    // Subtask operations
+    addSubtask,
+    toggleSubtask,
+    deleteSubtask,
+    updateSubtask,
+    
     deleteLabel,
     
     // Export/Import

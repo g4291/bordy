@@ -32,8 +32,12 @@ interface KanbanColumnProps {
   onUpdateColumn: (id: string, title: string) => void;
   onDeleteColumn: (id: string) => void;
   onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => void;
   onDeleteTask: (id: string) => void;
+  onAddSubtask: (taskId: string, title: string) => Promise<any>;
+  onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
   hasActiveFilters?: boolean;
 }
 
@@ -47,6 +51,10 @@ export function KanbanColumn({
   onCreateTask,
   onUpdateTask,
   onDeleteTask,
+  onAddSubtask,
+  onToggleSubtask,
+  onDeleteSubtask,
+  onUpdateSubtask,
   hasActiveFilters = false,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -182,6 +190,10 @@ export function KanbanColumn({
                 labels={labels}
                 onUpdate={onUpdateTask}
                 onDelete={onDeleteTask}
+                onAddSubtask={onAddSubtask}
+                onToggleSubtask={onToggleSubtask}
+                onDeleteSubtask={onDeleteSubtask}
+                onUpdateSubtask={onUpdateSubtask}
               />
             ))}
           </SortableContext>

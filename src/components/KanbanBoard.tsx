@@ -41,9 +41,13 @@ interface KanbanBoardProps {
   onDeleteColumn: (id: string) => void;
   onReorderColumns: (columns: Column[]) => void;
   onCreateTask: (columnId: string, title: string, description?: string) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks'>>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newIndex: number) => void;
+  onAddSubtask: (taskId: string, title: string) => Promise<any>;
+  onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
+  onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
   // Filter props
   filterTasks: (tasks: Task[]) => Task[];
   hasActiveFilters: boolean;
@@ -64,6 +68,10 @@ export function KanbanBoard({
   onUpdateTask,
   onDeleteTask,
   onMoveTask,
+  onAddSubtask,
+  onToggleSubtask,
+  onDeleteSubtask,
+  onUpdateSubtask,
   filterTasks,
   hasActiveFilters,
   onClearFilters,
@@ -277,6 +285,10 @@ export function KanbanBoard({
                 onCreateTask={onCreateTask}
                 onUpdateTask={onUpdateTask}
                 onDeleteTask={onDeleteTask}
+                onAddSubtask={onAddSubtask}
+                onToggleSubtask={onToggleSubtask}
+                onDeleteSubtask={onDeleteSubtask}
+                onUpdateSubtask={onUpdateSubtask}
                 hasActiveFilters={hasActiveFilters}
               />
             ))}
@@ -299,6 +311,10 @@ export function KanbanBoard({
                 task={activeTask}
                 labels={labels}
                 onUpdate={() => {}}
+                onAddSubtask={async () => {}}
+                onToggleSubtask={async () => {}}
+                onDeleteSubtask={async () => {}}
+                onUpdateSubtask={async () => {}}
                 onDelete={() => {}}
               />
             </div>

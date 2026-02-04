@@ -30,7 +30,7 @@ interface KanbanDB extends DBSchema {
 }
 
 const DB_NAME = 'kanban-db';
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 
 let dbInstance: IDBPDatabase<KanbanDB> | null = null;
 
@@ -69,6 +69,12 @@ export async function getDB(): Promise<IDBPDatabase<KanbanDB>> {
       if (!db.objectStoreNames.contains('templates')) {
         const templateStore = db.createObjectStore('templates', { keyPath: 'id' });
         templateStore.createIndex('by-created', 'createdAt');
+      }
+
+      // Migration for subtasks (version 5)
+      if (oldVersion < 5) {
+        // Note: Migration of existing tasks to add empty subtasks array
+        // is handled in getTasksByColumn and saveTask functions
       }
     },
   });
@@ -138,16 +144,24 @@ export async function deleteColumn(id: string): Promise<void> {
 export async function getTasksByColumn(columnId: string): Promise<Task[]> {
   const db = await getDB();
   const tasks = await db.getAllFromIndex('tasks', 'by-column', columnId);
-  // Ensure labelIds exists for backward compatibility
+  // Ensure labelIds and subtasks exist for backward compatibility
   return tasks
-    .map(task => ({ ...task, labelIds: task.labelIds || [] }))
+    .map(task => ({ 
+      ...task, 
+      labelIds: task.labelIds || [],
+      subtasks: task.subtasks || []
+    }))
     .sort((a, b) => a.order - b.order);
 }
 
 export async function saveTask(task: Task): Promise<void> {
   const db = await getDB();
-  // Ensure labelIds is always an array
-  await db.put('tasks', { ...task, labelIds: task.labelIds || [] });
+  // Ensure labelIds and subtasks are always arrays
+  await db.put('tasks', { 
+    ...task, 
+    labelIds: task.labelIds || [],
+    subtasks: task.subtasks || []
+  });
 }
 
 export async function deleteTask(id: string): Promise<void> {
@@ -186,7 +200,7 @@ export async function exportData(): Promise<KanbanData> {
     tasks,
     labels,
     exportedAt: Date.now(),
-    version: '1.2.0',
+    version: '1.3.0',
   };
 }
 
@@ -211,10 +225,13 @@ export async function importData(data: KanbanData): Promise<void> {
   }
   
   for (const task of data.tasks) {
-    // Ensure labelIds exists for backward compatibility
-    await tx.objectStore('tasks').put({ ...task, labelIds: task.labelIds || [] });
+    // Ensure labelIds and subtasks exist for backward compatibility
+    await tx.objectStore('tasks').put({ 
+      ...task, 
+      labelIds: task.labelIds || [],
+      subtasks: task.subtasks || []
+    });
   }
-  
   // Import labels if they exist (backward compatibility)
   if (data.labels) {
     for (const label of data.labels) {
