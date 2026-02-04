@@ -96,7 +96,7 @@ export function AttachmentUpload({ onUpload, disabled = false }: AttachmentUploa
   }, [disabled, handleFiles]);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" data-testid="attachment-upload">
       <div
         ref={dropZoneRef}
         onClick={handleClick}
@@ -116,6 +116,8 @@ export function AttachmentUpload({ onUpload, disabled = false }: AttachmentUploa
           }
           ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
         `}
+        data-testid="attachment-drop-zone"
+        data-dragging={isDragging}
       >
         <input
           ref={fileInputRef}
@@ -124,11 +126,12 @@ export function AttachmentUpload({ onUpload, disabled = false }: AttachmentUploa
           onChange={handleFileInput}
           className="hidden"
           disabled={disabled}
+          data-testid="attachment-file-input"
         />
         
         {isUploading ? (
           <>
-            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" />
+            <Loader2 className="h-8 w-8 text-muted-foreground animate-spin mb-2" data-testid="attachment-loading" />
             <p className="text-sm text-muted-foreground">Uploading...</p>
           </>
         ) : (
@@ -145,7 +148,7 @@ export function AttachmentUpload({ onUpload, disabled = false }: AttachmentUploa
       </div>
       
       {error && (
-        <p className="text-sm text-destructive">{error}</p>
+        <p className="text-sm text-destructive" data-testid="attachment-error">{error}</p>
       )}
     </div>
   );

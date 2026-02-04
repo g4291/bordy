@@ -82,6 +82,15 @@ export async function getDB(): Promise<IDBPDatabase<KanbanDB>> {
   return dbInstance;
 }
 
+// Reset database connection (for testing)
+export async function resetDB(): Promise<void> {
+  if (dbInstance) {
+    dbInstance.close();
+    dbInstance = null;
+  }
+  indexedDB.deleteDatabase(DB_NAME);
+}
+
 // Board operations
 export async function getAllBoards(): Promise<Board[]> {
   const db = await getDB();

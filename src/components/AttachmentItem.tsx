@@ -43,6 +43,9 @@ export function AttachmentItem({ attachment, onDelete, onPreview }: AttachmentIt
         ${isImage ? 'cursor-pointer' : ''}
       `}
       onClick={handleClick}
+      data-testid="attachment-item"
+      data-attachment-id={attachment.id}
+      data-is-image={isImage}
     >
       {/* Thumbnail or Icon */}
       <div className="relative w-20 h-20 flex items-center justify-center mb-1">
@@ -51,9 +54,10 @@ export function AttachmentItem({ attachment, onDelete, onPreview }: AttachmentIt
             src={thumbnailUrl}
             alt={attachment.name}
             className="max-w-full max-h-full object-contain rounded"
+            data-testid="attachment-thumbnail"
           />
         ) : (
-          <span className="text-3xl">{getFileIcon(attachment.type)}</span>
+          <span className="text-3xl" data-testid="attachment-icon">{getFileIcon(attachment.type)}</span>
         )}
         
         {/* Overlay on hover */}
@@ -68,12 +72,13 @@ export function AttachmentItem({ attachment, onDelete, onPreview }: AttachmentIt
       <p 
         className="text-xs text-center truncate w-full max-w-[96px]" 
         title={attachment.name}
+        data-testid="attachment-name"
       >
         {attachment.name}
       </p>
       
       {/* File size */}
-      <p className="text-xs text-muted-foreground">
+      <p className="text-xs text-muted-foreground" data-testid="attachment-size">
         {formatFileSize(attachment.size)}
       </p>
 
@@ -85,6 +90,7 @@ export function AttachmentItem({ attachment, onDelete, onPreview }: AttachmentIt
           className="h-6 w-6"
           onClick={handleDownload}
           title="Download"
+          data-testid="attachment-download"
         >
           <Download className="h-3 w-3" />
         </Button>
@@ -94,6 +100,7 @@ export function AttachmentItem({ attachment, onDelete, onPreview }: AttachmentIt
           className="h-6 w-6 text-destructive hover:text-destructive"
           onClick={handleDelete}
           title="Delete"
+          data-testid="attachment-delete"
         >
           <Trash2 className="h-3 w-3" />
         </Button>

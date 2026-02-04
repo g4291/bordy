@@ -194,7 +194,7 @@ export function Header({
   };
 
   return (
-    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60" data-testid="app-header">
       <div className="flex items-center justify-between h-14 px-4 gap-4">
         {/* Left section: Logo, Board selector, Board actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
@@ -211,7 +211,7 @@ export function Header({
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="min-w-[140px] sm:min-w-[200px] justify-between">
+              <Button variant="outline" className="min-w-[140px] sm:min-w-[200px] justify-between" data-testid="board-selector">
                 <span className="truncate">{currentBoard?.title || 'Select Board'}</span>
                 <ChevronDown className="h-4 w-4 ml-2 flex-shrink-0" />
               </Button>
@@ -234,7 +234,7 @@ export function Header({
                 </DropdownMenuItem>
               ))}
               {boards.length > 0 && <DropdownMenuSeparator />}
-              <DropdownMenuItem onClick={handleOpenCreateDialog}>
+              <DropdownMenuItem onClick={handleOpenCreateDialog} data-testid="new-board-menu-item">
                 <Plus className="h-4 w-4 mr-2" />
                 New Board
                 <kbd className="ml-auto px-1 py-0.5 text-[10px] font-mono bg-muted rounded border opacity-60">
@@ -327,6 +327,7 @@ export function Header({
             size="icon"
             onClick={onToggleTheme}
             title={theme === 'dark' ? 'Switch to light mode (D)' : 'Switch to dark mode (D)'}
+            data-testid="toggle-theme"
           >
             {theme === 'dark' ? (
               <Sun className="h-5 w-5" />
@@ -340,12 +341,14 @@ export function Header({
             accept=".json"
             onChange={handleFileChange}
             className="hidden"
+            data-testid="import-file-input"
           />
           <Button
             variant="outline"
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             className="hidden sm:flex"
+            data-testid="import-button"
           >
             <Upload className="h-4 w-4 mr-2" />
             Import
@@ -355,6 +358,7 @@ export function Header({
             size="sm"
             onClick={onExport}
             className="hidden sm:flex"
+            data-testid="export-button"
           >
             <Download className="h-4 w-4 mr-2" />
             Export

@@ -167,11 +167,13 @@ export function TaskCard({
         style={style}
         className={cardClassName}
         onClick={handleCardClick}
+        data-testid="task-card"
+        data-task-id={task.id}
       >
         <CardContent className="p-3">
           {/* Labels row */}
           {taskLabels.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2">
+            <div className="flex flex-wrap gap-1 mb-2" data-testid="task-labels">
               {taskLabels.map((label) => (
                 <LabelBadge key={label.id} label={label} size="sm" />
               ))}
@@ -181,6 +183,7 @@ export function TaskCard({
           <div className="flex items-start gap-2">
             <button
               data-drag-handle
+              data-testid="task-drag-handle"
               {...attributes}
               {...listeners}
               className="mt-0.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
@@ -189,16 +192,16 @@ export function TaskCard({
               <GripVertical className="h-4 w-4" />
             </button>
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate">{task.title}</p>
+              <p className="font-medium text-sm truncate" data-testid="task-title">{task.title}</p>
               {task.description && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-2" data-testid="task-description">
                   {task.description}
                 </p>
               )}
               
               {/* Subtask Progress on card */}
               {subtasks.length > 0 && (
-                <div className="mt-2">
+                <div className="mt-2" data-testid="task-subtasks-progress">
                   <SubtaskProgress subtasks={subtasks} />
                 </div>
               )}
@@ -206,23 +209,32 @@ export function TaskCard({
               {/* Priority, Due Date, and Attachments badges */}
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 {priority !== 'none' && (
-                  <PriorityBadge priority={priority} size="sm" />
+                  <span data-testid="task-priority">
+                    <PriorityBadge priority={priority} size="sm" />
+                  </span>
                 )}
                 {task.dueDate && dueDateStatus && (
-                  <div className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}>
+                  <div 
+                    className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}
+                    data-testid="task-due-date"
+                    data-due-status={dueDateStatus}
+                  >
                     {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
                     <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
                   </div>
                 )}
                 {attachmentCount > 0 && (
-                  <div className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted-foreground bg-muted">
+                  <div 
+                    className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted-foreground bg-muted"
+                    data-testid="task-attachment-badge"
+                  >
                     <Paperclip className="h-3 w-3" />
                     <span>{attachmentCount}</span>
                   </div>
                 )}
               </div>
             </div>
-            <div data-dropdown>
+            <div data-dropdown data-testid="task-menu">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button 
@@ -230,15 +242,19 @@ export function TaskCard({
                     size="icon" 
                     className="h-6 w-6"
                     onClick={(e) => e.stopPropagation()}
+                    data-testid="task-menu-trigger"
                   >
                     <MoreVertical className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={(e) => {
-                    e.stopPropagation();
-                    setIsDetailOpen(true);
-                  }}>
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsDetailOpen(true);
+                    }}
+                    data-testid="task-menu-view"
+                  >
                     View Details
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -247,6 +263,7 @@ export function TaskCard({
                       onDelete(task.id);
                     }}
                     className="text-destructive"
+                    data-testid="task-menu-delete"
                   >
                     Delete
                   </DropdownMenuItem>

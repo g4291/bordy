@@ -146,6 +146,8 @@ export function KanbanColumn({
         ref={setSortableNodeRef}
         style={style}
         className="w-72 flex-shrink-0 bg-muted/30 border-dashed border-2 border-primary/50"
+        data-testid="column"
+        data-column-id={column.id}
       >
         <CardHeader className="p-3 pb-2">
           <div className="h-6" />
@@ -167,6 +169,8 @@ export function KanbanColumn({
       className={`w-72 flex-shrink-0 bg-muted/50 flex flex-col h-full ${
         column.color ? 'border-t-4' : ''
       }`}
+      data-testid="column"
+      data-column-id={column.id}
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-center justify-between">
@@ -175,6 +179,7 @@ export function KanbanColumn({
               {...attributes}
               {...listeners}
               className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded text-muted-foreground"
+              data-testid="column-drag-handle"
             >
               <GripVertical className="h-4 w-4" />
             </button>
@@ -185,20 +190,28 @@ export function KanbanColumn({
                   style={{ backgroundColor: column.color }}
                 />
               )}
-              {column.title}
-              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+              <span data-testid="column-title">{column.title}</span>
+              <span 
+                className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded"
+                data-testid="column-task-count"
+              >
                 {displayCount}
               </span>
             </CardTitle>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-6 w-6">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6"
+                data-testid="column-menu-trigger"
+              >
                 <MoreVertical className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleOpenEdit}>
+              <DropdownMenuItem onClick={handleOpenEdit} data-testid="column-menu-edit">
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </DropdownMenuItem>
@@ -206,6 +219,7 @@ export function KanbanColumn({
               <DropdownMenuItem
                 onClick={() => setIsDeleting(true)}
                 className="text-destructive"
+                data-testid="column-menu-delete"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -218,6 +232,7 @@ export function KanbanColumn({
         <div
           ref={setDroppableNodeRef}
           className={`min-h-[100px] flex-1 overflow-y-auto space-y-2 rounded-lg transition-colors ${isOver ? 'bg-primary/10' : ''}`}
+          data-testid="column-drop-zone"
         >
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
@@ -241,14 +256,17 @@ export function KanbanColumn({
           </SortableContext>
           
           {tasks.length === 0 && (
-            <div className="h-[100px] flex items-center justify-center text-muted-foreground text-sm">
+            <div 
+              className="h-[100px] flex items-center justify-center text-muted-foreground text-sm"
+              data-testid="column-empty-state"
+            >
               {hasActiveFilters ? 'No matching tasks' : 'Drop tasks here'}
             </div>
           )}
         </div>
 
         {isAddingTask ? (
-          <div className="mt-2 space-y-2">
+          <div className="mt-2 space-y-2" data-testid="add-task-form">
             <Input
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -258,6 +276,7 @@ export function KanbanColumn({
                 if (e.key === 'Enter') handleAddTask();
                 if (e.key === 'Escape') setIsAddingTask(false);
               }}
+              data-testid="add-task-title-input"
             />
             <Input
               type="date"
@@ -265,12 +284,13 @@ export function KanbanColumn({
               onChange={(e) => setNewTaskDueDate(e.target.value)}
               placeholder="Due date (optional)"
               className="text-sm"
+              data-testid="add-task-date-input"
             />
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleAddTask}>
+              <Button size="sm" onClick={handleAddTask} data-testid="add-task-submit">
                 Add
               </Button>
-              <Button size="sm" variant="outline" onClick={() => setIsAddingTask(false)}>
+              <Button size="sm" variant="outline" onClick={() => setIsAddingTask(false)} data-testid="add-task-cancel">
                 Cancel
               </Button>
             </div>
@@ -281,6 +301,7 @@ export function KanbanColumn({
             size="sm"
             className="w-full mt-2 justify-start text-muted-foreground"
             onClick={() => setIsAddingTask(true)}
+            data-testid="add-task-button"
           >
             <Plus className="h-4 w-4 mr-1" />
             Add task
@@ -290,7 +311,7 @@ export function KanbanColumn({
 
       {/* Edit Column Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent>
+        <DialogContent data-testid="edit-column-dialog">
           <DialogHeader>
             <DialogTitle>Edit Column</DialogTitle>
           </DialogHeader>
@@ -304,6 +325,7 @@ export function KanbanColumn({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleSaveColumn();
                 }}
+                data-testid="edit-column-title-input"
               />
             </div>
             <ColorPicker
@@ -316,14 +338,14 @@ export function KanbanColumn({
             <Button variant="outline" onClick={() => setIsEditing(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveColumn}>Save</Button>
+            <Button onClick={handleSaveColumn} data-testid="edit-column-save">Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Delete Column Confirmation Dialog */}
       <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
-        <DialogContent>
+        <DialogContent data-testid="delete-column-dialog">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
@@ -341,7 +363,7 @@ export function KanbanColumn({
             <Button variant="outline" onClick={() => setIsDeleting(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteColumn}>
+            <Button variant="destructive" onClick={handleDeleteColumn} data-testid="delete-column-confirm">
               Delete
             </Button>
           </DialogFooter>

@@ -2,8 +2,7 @@
 
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.9.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -24,6 +23,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **💬 Task Comments** - Add notes and comments to tasks with edit/delete and timestamps
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON with toast notifications
+- **📎 Attachments** - Attach images and files to tasks (up to 10MB per file)
 - **100% Local Storage** - Your data never leaves your browser
 - **No Account Required** - Start using immediately, no sign-up needed
 
@@ -128,6 +128,8 @@ Bordy supports keyboard shortcuts for faster navigation and task management:
 - [TypeScript](https://www.typescriptlang.org/) - Type safety
 - [Tailwind CSS](https://tailwindcss.com/) - Styling
 - [shadcn/ui](https://ui.shadcn.com/) - UI components
+- [Jest](https://jestjs.io/) + [React Testing Library](https://testing-library.com/) - Unit tests
+- [Playwright](https://playwright.dev/) - E2E tests
 - [@dnd-kit](https://dndkit.com/) - Drag and drop
 - [idb](https://github.com/jakearchibald/idb) - IndexedDB wrapper
 
@@ -214,8 +216,13 @@ src/
 │   └── utils.ts             # Utility functions
 ├── types/
 │   └── index.ts             # TypeScript interfaces
-├── App.tsx
 └── index.css                # Tailwind & global styles
+e2e/                         # Playwright E2E tests
+├── board.spec.ts
+├── task.spec.ts
+├── views.spec.ts
+├── attachments.spec.ts
+└── export-import.spec.ts
 ```
 
 ## ✅ Subtasks / Checklists
@@ -257,13 +264,49 @@ Bordy comes with 9 ready-to-use templates (all with column colors!):
 
 You can also **save any board as a custom template** for reuse!
 
+## 🧪 Testing
+
+Bordy has comprehensive test coverage with both unit and E2E tests.
+
+### Unit Tests (Jest + React Testing Library)
+
+```bash
+npm test              # Run in watch mode
+npm run test:ci       # Run once (CI mode)
+npm run test:coverage # Run with coverage report
+```
+
+Unit tests cover:
+- IndexedDB operations (`db.test.ts`)
+- Type helpers and utilities (`types.test.ts`)
+- Calendar utilities (`calendar-utils.test.ts`)
+- Attachment validation (`attachments.test.ts`)
+
+### E2E Tests (Playwright)
+
+```bash
+npm run test:e2e        # Run headless
+npm run test:e2e:ui     # Run with Playwright UI
+npm run test:e2e:headed # Run in headed browser
+```
+
+E2E tests cover:
+- Board management (create, switch, shortcuts)
+- Task operations (CRUD, drag & drop, priority)
+- View modes (Kanban, Calendar, Agenda)
+- Attachments (upload, delete, display)
+- Export/Import functionality
+
+**Browsers:** Chromium, Firefox (WebKit on CI only)
+
+
 ## 📊 Data Format
 
-Export/Import uses JSON format (version 1.9.0):
+Export/Import uses JSON format (version 2.1.0):
 
 ```json
-  "version": "1.9.0",
-  "version": "1.8.0",
+{
+  "version": "2.1.0",
   "exportedAt": 1704067200000,
   "boards": [...],
   "columns": [
@@ -279,19 +322,26 @@ Export/Import uses JSON format (version 1.9.0):
       "id": "...",
       "title": "Task name",
       "priority": "high",
-      "comments": [
-        { "id": "...", "text": "Comment text", "createdAt": 1704067200000, "updatedAt": null }
-      ],
+      "comments": [...],
+      "subtasks": [...],
       "dueDate": 1704067200000,
-      "subtasks": [
-        { "id": "...", "title": "Subtask", "completed": false }
-      ],
       ...
     }
   ],
-  "labels": [...]
+  "labels": [...],
+  "attachments": [
+    {
+      "id": "...",
+      "taskId": "...",
+      "name": "file.pdf",
+      "type": "application/pdf",
+      "size": 12345,
+      "data": "base64..."
+    }
+  ]
 }
 ```
+
 
 ## 🗺️ Roadmap
 
@@ -309,6 +359,9 @@ Export/Import uses JSON format (version 1.9.0):
 - [x] Calendar view (Month & Week)
 - [x] Agenda view
 - [x] Task comments / notes
+- [x] Markdown support in comments
+- [x] File attachments
+- [x] Comprehensive test suite (Jest + Playwright)
 - [ ] Notifications / Reminders
 
 ## 🤝 Contributing

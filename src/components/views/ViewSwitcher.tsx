@@ -17,7 +17,10 @@ const VIEW_OPTIONS: { mode: ViewMode; label: string; icon: React.ElementType; sh
 
 export function ViewSwitcher({ viewMode, onViewModeChange, className = '' }: ViewSwitcherProps) {
   return (
-    <div className={`inline-flex items-center rounded-lg border bg-muted p-1 ${className}`}>
+    <div 
+      className={`inline-flex items-center rounded-lg border bg-muted p-1 ${className}`}
+      data-testid="view-switcher"
+    >
       {VIEW_OPTIONS.map(({ mode, label, icon: Icon }) => (
         <Button
           key={mode}
@@ -32,6 +35,8 @@ export function ViewSwitcher({ viewMode, onViewModeChange, className = '' }: Vie
             }
           `}
           title={`Switch to ${label} view`}
+          data-testid={`view-${mode}`}
+          data-active={viewMode === mode}
         >
           <Icon className="h-4 w-4" />
           <span className="hidden sm:inline">{label}</span>
@@ -46,7 +51,10 @@ export function ViewSwitcher({ viewMode, onViewModeChange, className = '' }: Vie
  */
 export function ViewSwitcherCompact({ viewMode, onViewModeChange, className = '' }: ViewSwitcherProps) {
   return (
-    <div className={`inline-flex items-center rounded-md border bg-muted p-0.5 ${className}`}>
+    <div 
+      className={`inline-flex items-center rounded-md border bg-muted p-0.5 ${className}`}
+      data-testid="view-switcher-compact"
+    >
       {VIEW_OPTIONS.map(({ mode, label, icon: Icon }) => (
         <Button
           key={mode}
@@ -61,6 +69,8 @@ export function ViewSwitcherCompact({ viewMode, onViewModeChange, className = ''
             }
           `}
           title={`${label} view`}
+          data-testid={`view-${mode}-compact`}
+          data-active={viewMode === mode}
         >
           <Icon className="h-3.5 w-3.5" />
         </Button>
