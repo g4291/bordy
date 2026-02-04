@@ -198,10 +198,16 @@ export function Header({
       <div className="flex items-center justify-between h-14 px-4 gap-4">
         {/* Left section: Logo, Board selector, Board actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
-          <div className="flex items-center gap-2">
+          <a
+            href="https://bordy.online"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            title="Visit bordy.online"
+          >
             <Logo size={28} />
             <h1 className="text-xl font-bold hidden sm:block">Bordy</h1>
-          </div>
+          </a>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
