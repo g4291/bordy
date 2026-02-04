@@ -44,6 +44,9 @@
     "typescript": "^4.9.5"
   },
   "scripts": {
+    "version:sync": "node scripts/sync-version.js",
+    "prebuild": "npm run version:sync",
+    "prestart": "npm run version:sync",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",

@@ -13,6 +13,7 @@ import {
   FileStack,
   Keyboard,
 } from 'lucide-react';
+import { APP_VERSION } from '../version';
 import { Logo } from './Logo';
 import { Board, Label, BoardTemplate, TaskPriority } from '../types';
 import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
@@ -207,6 +208,7 @@ export function Header({
           >
             <Logo size={28} />
             <h1 className="text-xl font-bold hidden sm:block">Bordy</h1>
+            <span className="text-[10px] text-muted-foreground font-normal hidden sm:inline self-end mb-1">v{APP_VERSION}</span>
           </a>
 
           <DropdownMenu>
