@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.8.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.9.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -21,6 +21,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
 - **📅 Calendar View** - View tasks in month or week calendar format with drag & drop date change
 - **📋 Agenda View** - See tasks grouped by date (Overdue, Today, Tomorrow, This Week, Later)
+- **💬 Task Comments** - Add notes and comments to tasks with edit/delete and timestamps
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON with toast notifications
 - **100% Local Storage** - Your data never leaves your browser
@@ -193,6 +194,8 @@ src/
 │   ├── FilterDropdown.tsx   # Filter by labels, priority & due date
 │   ├── ActiveFilters.tsx    # Active filter badges display
 │   ├── SubtaskProgress.tsx  # Subtask progress bar
+│   ├── CommentList.tsx      # Task comments list with add form
+│   ├── CommentItem.tsx      # Single comment with edit/delete
 │   ├── SubtaskList.tsx      # Subtask checklist component
 │   ├── TemplatePicker.tsx   # Template selection component
 │   ├── TemplateManager.tsx  # Template management dialog
@@ -205,7 +208,7 @@ src/
 │   ├── useTheme.ts          # Theme management
 │   └── useKeyboardShortcuts.ts  # Keyboard shortcuts logic
 ├── lib/
-│   ├── db.ts                # IndexedDB setup (v6)
+│   ├── db.ts                # IndexedDB setup (v7)
 │   ├── calendar-utils.ts    # Date helper functions
 │   ├── templates.ts         # Built-in board templates with colors
 │   └── utils.ts             # Utility functions
@@ -256,10 +259,10 @@ You can also **save any board as a custom template** for reuse!
 
 ## 📊 Data Format
 
-Export/Import uses JSON format (version 1.8.0):
+Export/Import uses JSON format (version 1.9.0):
 
 ```json
-{
+  "version": "1.9.0",
   "version": "1.8.0",
   "exportedAt": 1704067200000,
   "boards": [...],
@@ -276,6 +279,9 @@ Export/Import uses JSON format (version 1.8.0):
       "id": "...",
       "title": "Task name",
       "priority": "high",
+      "comments": [
+        { "id": "...", "text": "Comment text", "createdAt": 1704067200000, "updatedAt": null }
+      ],
       "dueDate": 1704067200000,
       "subtasks": [
         { "id": "...", "title": "Subtask", "completed": false }
@@ -302,7 +308,7 @@ Export/Import uses JSON format (version 1.8.0):
 - [x] Column colors
 - [x] Calendar view (Month & Week)
 - [x] Agenda view
-- [ ] Task comments / activity log
+- [x] Task comments / notes
 - [ ] Notifications / Reminders
 
 ## 🤝 Contributing

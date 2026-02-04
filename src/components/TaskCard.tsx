@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock } from 'lucide-react';
-import { Task, Label, PRIORITY_CONFIG } from '../types';
+import { Task, Label, Comment, PRIORITY_CONFIG } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import {
@@ -25,6 +25,10 @@ interface TaskCardProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
+  // Comment handlers
+  onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
+  onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
+  onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
 }
 
 export function TaskCard({ 
@@ -36,6 +40,9 @@ export function TaskCard({
   onToggleSubtask,
   onDeleteSubtask,
   onUpdateSubtask,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
 }: TaskCardProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -248,6 +255,9 @@ export function TaskCard({
         onToggleSubtask={onToggleSubtask}
         onDeleteSubtask={onDeleteSubtask}
         onUpdateSubtask={onUpdateSubtask}
+        onAddComment={onAddComment}
+        onUpdateComment={onUpdateComment}
+        onDeleteComment={onDeleteComment}
       />
     </>
   );

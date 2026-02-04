@@ -18,7 +18,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { Plus, SearchX } from 'lucide-react';
-import { Column, Task, Label } from '../types';
+import { Column, Task, Label, Comment } from '../types';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { Button } from './ui/button';
@@ -48,6 +48,10 @@ interface KanbanBoardProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
+  // Comment handlers
+  onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
+  onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
+  onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
   // Filter props
   filterTasks: (tasks: Task[]) => Task[];
   hasActiveFilters: boolean;
@@ -76,6 +80,9 @@ export function KanbanBoard({
   onToggleSubtask,
   onDeleteSubtask,
   onUpdateSubtask,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
   filterTasks,
   hasActiveFilters,
   onClearFilters,
@@ -324,6 +331,9 @@ export function KanbanBoard({
                 onToggleSubtask={onToggleSubtask}
                 onDeleteSubtask={onDeleteSubtask}
                 onUpdateSubtask={onUpdateSubtask}
+                onAddComment={onAddComment}
+                onUpdateComment={onUpdateComment}
+                onDeleteComment={onDeleteComment}
                 hasActiveFilters={hasActiveFilters}
               />
             ))}
@@ -350,6 +360,9 @@ export function KanbanBoard({
                 onToggleSubtask={async () => {}}
                 onDeleteSubtask={async () => {}}
                 onUpdateSubtask={async () => {}}
+                onAddComment={async () => undefined}
+                onUpdateComment={async () => {}}
+                onDeleteComment={async () => {}}
                 onDelete={() => {}}
               />
             </div>

@@ -23,6 +23,13 @@ export interface Subtask {
   createdAt: number;
 }
 
+export interface Comment {
+  id: string;
+  text: string;
+  createdAt: number;
+  updatedAt?: number;  // timestamp when edited
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -35,6 +42,7 @@ export interface Task {
   createdAt: number;
   updatedAt: number;
   priority: TaskPriority;
+  comments: Comment[];
 }
 
 export interface Column {

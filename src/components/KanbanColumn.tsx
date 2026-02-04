@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle, Palette } from 'lucide-react';
-import { Column, Task, Label } from '../types';
+import { Column, Task, Label, Comment } from '../types';
 import { TaskCard } from './TaskCard';
 import { ColorPicker } from './ColorPicker';
 import { Button } from './ui/button';
@@ -41,6 +41,10 @@ interface KanbanColumnProps {
   onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
   hasActiveFilters?: boolean;
+  // Comment handlers
+  onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
+  onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
+  onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
 }
 
 export function KanbanColumn({
@@ -58,6 +62,9 @@ export function KanbanColumn({
   onDeleteSubtask,
   onUpdateSubtask,
   hasActiveFilters = false,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -218,6 +225,9 @@ export function KanbanColumn({
                 onToggleSubtask={onToggleSubtask}
                 onDeleteSubtask={onDeleteSubtask}
                 onUpdateSubtask={onUpdateSubtask}
+                onAddComment={onAddComment}
+                onUpdateComment={onUpdateComment}
+                onDeleteComment={onDeleteComment}
               />
             ))}
           </SortableContext>

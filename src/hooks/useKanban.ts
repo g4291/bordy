@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Label, Subtask, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
+import { Board, Column, Task, Label, Subtask, Comment, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
 import * as db from '../lib/db';
 
 export function useKanban() {
@@ -117,6 +117,7 @@ export function useKanban() {
             description: tTask.description,
             columnId: targetColumn.id,
             order: 0,
+            comments: [],
             subtasks: [],
             labelIds: taskLabelIds,
             priority: tTask.priority || 'none',
@@ -213,6 +214,7 @@ export function useKanban() {
       columnId,
       order: columnTasks.length,
       labelIds: [],
+      comments: [],
       subtasks: [],
       priority: 'none',
       dueDate,
@@ -459,6 +461,78 @@ export function useKanban() {
     }
   }, [tasks]);
 
+  // Comment operations
+  const addComment = useCallback(async (taskId: string, text: string): Promise<Comment | undefined> => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const newComment: Comment = {
+          id: uuidv4(),
+          text,
+          createdAt: Date.now(),
+        };
+        const updated: Task = {
+          ...task,
+          comments: [...(task.comments || []), newComment],
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return newComment;
+      }
+    }
+    return undefined;
+  }, [tasks]);
+
+  const updateComment = useCallback(async (taskId: string, commentId: string, text: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          comments: (task.comments || []).map((c: Comment) =>
+            c.id === commentId ? { ...c, text, updatedAt: Date.now() } : c
+          ),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
+  const deleteComment = useCallback(async (taskId: string, commentId: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          comments: (task.comments || []).filter((c: Comment) => c.id !== commentId),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
   // Export/Import operations
   const exportData = useCallback(async (): Promise<{ success: boolean; message: string; boardCount?: number }> => {
     try {
@@ -562,6 +636,11 @@ export function useKanban() {
     toggleSubtask,
     deleteSubtask,
     updateSubtask,
+    
+    // Comment operations
+    addComment,
+    updateComment,
+    deleteComment,
     
     // Export/Import
     exportData,

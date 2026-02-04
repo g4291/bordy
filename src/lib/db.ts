@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { Board, Column, Task, Label, KanbanData, BoardTemplate, TaskPriority } from '../types';
+import { Board, Column, Task, Label, KanbanData, BoardTemplate, TaskPriority, Comment } from '../types';
 
 interface KanbanDB extends DBSchema {
   boards: {
@@ -30,7 +30,7 @@ interface KanbanDB extends DBSchema {
 }
 
 const DB_NAME = 'kanban-db';
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 
 let dbInstance: IDBPDatabase<KanbanDB> | null = null;
 
@@ -151,6 +151,7 @@ export async function getTasksByColumn(columnId: string): Promise<Task[]> {
       ...task, 
       labelIds: task.labelIds || [],
       subtasks: task.subtasks || [],
+      comments: task.comments || [],
       priority: (task.priority || 'none') as TaskPriority,
     }))
     .sort((a, b) => a.order - b.order);
@@ -164,6 +165,7 @@ export async function saveTask(task: Task): Promise<void> {
     ...task, 
     labelIds: task.labelIds || [],
     subtasks: task.subtasks || [],
+    comments: task.comments || [],
     priority: (task.priority || 'none') as TaskPriority,
   });
 }
@@ -236,6 +238,7 @@ export async function importData(data: KanbanData): Promise<void> {
       labelIds: task.labelIds || [],
       subtasks: task.subtasks || [],
       priority: (task.priority || 'none') as TaskPriority,
+      comments: task.comments || [],
     });
   }
   // Import labels if they exist (backward compatibility)

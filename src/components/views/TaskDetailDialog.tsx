@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pencil, Trash2, AlertTriangle, Calendar, Clock, X } from 'lucide-react';
-import { Task, Label, TaskPriority, PRIORITY_CONFIG } from '../../types';
+import { Task, Label, TaskPriority, Comment, PRIORITY_CONFIG } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
@@ -18,6 +18,7 @@ import { SubtaskProgress } from '../SubtaskProgress';
 import { SubtaskList } from '../SubtaskList';
 import { PriorityBadge } from '../PriorityBadge';
 import { PrioritySelect } from '../PrioritySelect';
+import { CommentList } from '../CommentList';
 
 interface TaskDetailDialogProps {
   task: Task | null;
@@ -30,6 +31,9 @@ interface TaskDetailDialogProps {
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onDeleteSubtask: (taskId: string, subtaskId: string) => Promise<void>;
   onUpdateSubtask: (taskId: string, subtaskId: string, title: string) => Promise<void>;
+  onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
+  onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
+  onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
 }
 
 export function TaskDetailDialog({
@@ -43,6 +47,9 @@ export function TaskDetailDialog({
   onToggleSubtask,
   onDeleteSubtask,
   onUpdateSubtask,
+  onAddComment,
+  onUpdateComment,
+  onDeleteComment,
 }: TaskDetailDialogProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -156,6 +163,7 @@ export function TaskDetailDialog({
 
   const taskLabels = labels.filter((l) => task.labelIds?.includes(l.id));
   const subtasks = task.subtasks || [];
+  const comments = task.comments || [];
   const priority = task.priority || 'none';
 
   // View mode dialog
@@ -235,10 +243,21 @@ export function TaskDetailDialog({
               </div>
             )}
 
-            {/* Empty state */}
-            {subtasks.length === 0 && !task.description && priority === 'none' && (
+            {/* Comments section - always visible in view mode */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <CommentList
+                taskId={task.id}
+                comments={comments}
+                onAddComment={onAddComment}
+                onUpdateComment={onUpdateComment}
+                onDeleteComment={onDeleteComment}
+              />
+            </div>
+
+            {/* Empty state - only if no content at all */}
+            {subtasks.length === 0 && !task.description && priority === 'none' && comments.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                No description or checklist items yet.
+                No description, checklist items, or comments yet.
               </p>
             )}
           </div>
@@ -334,6 +353,17 @@ export function TaskDetailDialog({
               onToggleSubtask={onToggleSubtask}
               onDeleteSubtask={onDeleteSubtask}
               onUpdateSubtask={onUpdateSubtask}
+            />
+          </div>
+
+          {/* Comments section in edit mode */}
+          <div className="border rounded-lg p-3 bg-muted/30">
+            <CommentList
+              taskId={task.id}
+              comments={comments}
+              onAddComment={onAddComment}
+              onUpdateComment={onUpdateComment}
+              onDeleteComment={onDeleteComment}
             />
           </div>
 

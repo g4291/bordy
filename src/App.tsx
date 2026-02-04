@@ -37,6 +37,9 @@ function AppContent() {
     toggleSubtask,
     deleteSubtask,
     updateSubtask,
+    addComment,
+    updateComment,
+    deleteComment,
     createLabel,
     updateLabel,
     deleteLabel,
@@ -554,6 +557,10 @@ function AppContent() {
               onToggleSubtask={toggleSubtask}
               onDeleteSubtask={deleteSubtask}
               onUpdateSubtask={updateSubtask}
+              // Comment props
+              onAddComment={addComment}
+              onUpdateComment={updateComment}
+              onDeleteComment={deleteComment}
               // Keyboard shortcut props
               isNewTaskDialogOpen={isNewTaskDialogOpen}
               setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
@@ -616,6 +623,9 @@ function AppContent() {
         onToggleSubtask={toggleSubtask}
         onDeleteSubtask={deleteSubtask}
         onUpdateSubtask={updateSubtask}
+        onAddComment={addComment}
+        onUpdateComment={updateComment}
+        onDeleteComment={deleteComment}
       />
     </div>
   );
