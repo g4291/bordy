@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { Board, Column, Task, Label, KanbanData } from '../types';
+import { Board, Column, Task, Label, KanbanData, BoardTemplate } from '../types';
 
 interface KanbanDB extends DBSchema {
   boards: {
@@ -22,10 +22,15 @@ interface KanbanDB extends DBSchema {
     value: Label;
     indexes: { 'by-board': string };
   };
+  templates: {
+    key: string;
+    value: BoardTemplate;
+    indexes: { 'by-created': number };
+  };
 }
 
 const DB_NAME = 'kanban-db';
-const DB_VERSION = 2;
+const DB_VERSION = 4;
 
 let dbInstance: IDBPDatabase<KanbanDB> | null = null;
 
@@ -58,6 +63,12 @@ export async function getDB(): Promise<IDBPDatabase<KanbanDB>> {
       if (!db.objectStoreNames.contains('labels')) {
         const labelStore = db.createObjectStore('labels', { keyPath: 'id' });
         labelStore.createIndex('by-board', 'boardId');
+      }
+
+      // Templates store (added in version 4)
+      if (!db.objectStoreNames.contains('templates')) {
+        const templateStore = db.createObjectStore('templates', { keyPath: 'id' });
+        templateStore.createIndex('by-created', 'createdAt');
       }
     },
   });
@@ -175,7 +186,7 @@ export async function exportData(): Promise<KanbanData> {
     tasks,
     labels,
     exportedAt: Date.now(),
-    version: '1.1.0',
+    version: '1.2.0',
   };
 }
 
@@ -212,4 +223,25 @@ export async function importData(data: KanbanData): Promise<void> {
   }
   
   await tx.done;
+}
+
+// Template operations
+export async function getAllTemplates(): Promise<BoardTemplate[]> {
+  const db = await getDB();
+  return db.getAllFromIndex('templates', 'by-created');
+}
+
+export async function getTemplate(id: string): Promise<BoardTemplate | undefined> {
+  const db = await getDB();
+  return db.get('templates', id);
+}
+
+export async function saveTemplate(template: BoardTemplate): Promise<void> {
+  const db = await getDB();
+  await db.put('templates', template);
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const db = await getDB();
+  await db.delete('templates', id);
 }

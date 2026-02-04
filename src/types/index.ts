@@ -12,6 +12,7 @@ export interface Task {
   columnId: string;
   order: number;
   labelIds: string[];
+  dueDate?: number;
   createdAt: number;
   updatedAt: number;
 }
@@ -51,3 +52,33 @@ export const LABEL_COLORS = [
   { name: 'Pink', value: '#ec4899' },
   { name: 'Gray', value: '#6b7280' },
 ] as const;
+
+// Template types
+export interface TemplateTask {
+  title: string;
+  description?: string;
+  columnIndex: number;  // reference to column by index
+  labelIndices: number[];  // reference to labels by index
+}
+
+export interface TemplateColumn {
+  title: string;
+}
+
+export interface TemplateLabel {
+  name: string;
+  color: string;
+}
+
+export interface BoardTemplate {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;  // emoji
+  isBuiltIn: boolean;
+  columns: TemplateColumn[];
+  labels: TemplateLabel[];
+  tasks: TemplateTask[];
+  createdAt: number;
+  updatedAt: number;
+}

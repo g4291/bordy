@@ -11,8 +11,9 @@ import {
   Sun,
   AlertTriangle,
   Tags,
+  FileStack,
 } from 'lucide-react';
-import { Board, Label } from '../types';
+import { Board, Label, BoardTemplate } from '../types';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
@@ -31,12 +32,15 @@ import {
   DialogDescription,
 } from './ui/dialog';
 import { LabelManager } from './LabelManager';
+import { TemplatePicker } from './TemplatePicker';
+import { TemplateManager } from './TemplateManager';
+import { BUILT_IN_TEMPLATES } from '../lib/templates';
 
 interface HeaderProps {
   boards: Board[];
   currentBoard: Board | null;
   onSelectBoard: (board: Board) => void;
-  onCreateBoard: (title: string) => void;
+  onCreateBoard: (title: string, template?: BoardTemplate) => void;
   onUpdateBoard: (id: string, title: string) => void;
   onDeleteBoard: (id: string) => void;
   onExport: () => void;
@@ -47,6 +51,14 @@ interface HeaderProps {
   onCreateLabel: (name: string, color: string) => void;
   onUpdateLabel: (id: string, updates: { name?: string; color?: string }) => void;
   onDeleteLabel: (id: string) => void;
+  // Template props
+  allTemplates: BoardTemplate[];
+  builtInTemplates: BoardTemplate[];
+  customTemplates: BoardTemplate[];
+  onSaveCurrentBoardAsTemplate: (name: string, description: string, icon: string) => Promise<void>;
+  onUpdateTemplate: (id: string, updates: { name?: string; description?: string; icon?: string }) => Promise<void>;
+  onDeleteTemplate: (id: string) => Promise<void>;
+  onDuplicateTemplate: (id: string, newName?: string) => Promise<void>;
 }
 
 export function Header({
@@ -64,18 +76,31 @@ export function Header({
   onCreateLabel,
   onUpdateLabel,
   onDeleteLabel,
+  // Template props
+  allTemplates,
+  builtInTemplates,
+  customTemplates,
+  onSaveCurrentBoardAsTemplate,
+  onUpdateTemplate,
+  onDeleteTemplate,
+  onDuplicateTemplate,
 }: HeaderProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
+  const [isTemplateManagerOpen, setIsTemplateManagerOpen] = useState(false);
   const [boardTitle, setBoardTitle] = useState('');
+  const [selectedTemplate, setSelectedTemplate] = useState<BoardTemplate | null>(
+    BUILT_IN_TEMPLATES[0]
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleCreateBoard = () => {
     if (boardTitle.trim()) {
-      onCreateBoard(boardTitle.trim());
+      onCreateBoard(boardTitle.trim(), selectedTemplate || undefined);
       setBoardTitle('');
+      setSelectedTemplate(BUILT_IN_TEMPLATES[0]);
       setIsCreating(false);
     }
   };
@@ -101,6 +126,13 @@ export function Header({
       onImport(file);
       e.target.value = '';
     }
+  };
+
+  const handleOpenCreateDialog = () => {
+    setBoardTitle('');
+    // Use first template from all templates (prefer built-in blank)
+    setSelectedTemplate(allTemplates[0] || BUILT_IN_TEMPLATES[0]);
+    setIsCreating(true);
   };
 
   return (
@@ -130,7 +162,7 @@ export function Header({
                 </DropdownMenuItem>
               ))}
               {boards.length > 0 && <DropdownMenuSeparator />}
-              <DropdownMenuItem onClick={() => setIsCreating(true)}>
+              <DropdownMenuItem onClick={handleOpenCreateDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Board
               </DropdownMenuItem>
@@ -157,6 +189,14 @@ export function Header({
                 title="Manage labels"
               >
                 <Tags className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsTemplateManagerOpen(true)}
+                title="Manage templates"
+              >
+                <FileStack className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
@@ -203,23 +243,42 @@ export function Header({
 
       {/* Create Board Dialog */}
       <Dialog open={isCreating} onOpenChange={setIsCreating}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Create New Board</DialogTitle>
+            <DialogDescription>
+              Choose a template and give your board a name.
+            </DialogDescription>
           </DialogHeader>
-          <Input
-            value={boardTitle}
-            onChange={(e) => setBoardTitle(e.target.value)}
-            placeholder="Board title"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleCreateBoard();
-            }}
-          />
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Board Name</label>
+              <Input
+                value={boardTitle}
+                onChange={(e) => setBoardTitle(e.target.value)}
+                placeholder="Enter board name..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateBoard();
+                }}
+                autoFocus
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Template</label>
+              <TemplatePicker
+                templates={allTemplates}
+                selectedTemplate={selectedTemplate}
+                onSelectTemplate={setSelectedTemplate}
+              />
+            </div>
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreating(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateBoard}>Create</Button>
+            <Button onClick={handleCreateBoard} disabled={!boardTitle.trim()}>
+              Create Board
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -279,6 +338,19 @@ export function Header({
         onCreateLabel={onCreateLabel}
         onUpdateLabel={onUpdateLabel}
         onDeleteLabel={onDeleteLabel}
+      />
+
+      {/* Template Manager Dialog */}
+      <TemplateManager
+        open={isTemplateManagerOpen}
+        onOpenChange={setIsTemplateManagerOpen}
+        builtInTemplates={builtInTemplates}
+        customTemplates={customTemplates}
+        onSaveCurrentBoard={onSaveCurrentBoardAsTemplate}
+        onUpdateTemplate={onUpdateTemplate}
+        onDeleteTemplate={onDeleteTemplate}
+        onDuplicateTemplate={onDuplicateTemplate}
+        hasCurrentBoard={!!currentBoard}
       />
     </header>
   );

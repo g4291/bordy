@@ -1,6 +1,7 @@
 import React from 'react';
 import { useKanban } from './hooks/useKanban';
 import { useTheme } from './hooks/useTheme';
+import { useTemplates } from './hooks/useTemplates';
 import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 
@@ -33,6 +34,30 @@ function App() {
 
   const { theme, toggleTheme } = useTheme();
 
+  const {
+    customTemplates,
+    builtInTemplates,
+    getAllTemplates,
+    saveCurrentBoardAsTemplate,
+    updateTemplate,
+    deleteTemplate,
+    duplicateTemplate,
+  } = useTemplates();
+
+  // Handler for saving current board as template
+  const handleSaveCurrentBoardAsTemplate = async (
+    name: string,
+    description: string,
+    icon: string
+  ) => {
+    await saveCurrentBoardAsTemplate(name, description, icon, columns, tasks, labels);
+  };
+
+  // Handler for duplicating template (wrapper to return void)
+  const handleDuplicateTemplate = async (id: string, newName?: string) => {
+    await duplicateTemplate(id, newName);
+  };
+
   if (loading) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
@@ -42,7 +67,7 @@ function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-background text-foreground">
+    <div className="h-screen flex flex-col bg-background text-foreground overflow-hidden">
       <Header
         boards={boards}
         currentBoard={currentBoard}
@@ -58,6 +83,14 @@ function App() {
         onCreateLabel={createLabel}
         onUpdateLabel={updateLabel}
         onDeleteLabel={deleteLabel}
+        // Template props
+        allTemplates={getAllTemplates()}
+        builtInTemplates={builtInTemplates}
+        customTemplates={customTemplates}
+        onSaveCurrentBoardAsTemplate={handleSaveCurrentBoardAsTemplate}
+        onUpdateTemplate={updateTemplate}
+        onDeleteTemplate={deleteTemplate}
+        onDuplicateTemplate={handleDuplicateTemplate}
       />
 
       {currentBoard ? (

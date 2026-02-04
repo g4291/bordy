@@ -205,7 +205,7 @@ export function KanbanBoard({
   };
 
   return (
-    <div className="flex-1 overflow-x-auto p-6">
+    <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 h-full">
       <DndContext
         sensors={sensors}
         collisionDetection={customCollisionDetection}

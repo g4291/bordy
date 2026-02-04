@@ -30,8 +30,8 @@ interface KanbanColumnProps {
   labels: Label[];
   onUpdateColumn: (id: string, title: string) => void;
   onDeleteColumn: (id: string) => void;
-  onCreateTask: (columnId: string, title: string, description?: string) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => void;
+  onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => void;
   onDeleteTask: (id: string) => void;
 }
 
@@ -50,6 +50,7 @@ export function KanbanColumn({
   const [editTitle, setEditTitle] = useState(column.title);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState<string>('');
 
   // Sortable for the column itself (for reordering columns)
   const {
@@ -89,8 +90,9 @@ export function KanbanColumn({
 
   const handleAddTask = () => {
     if (newTaskTitle.trim()) {
-      onCreateTask(column.id, newTaskTitle.trim());
+      onCreateTask(column.id, newTaskTitle.trim(), undefined, newTaskDueDate ? new Date(newTaskDueDate).getTime() : undefined);
       setNewTaskTitle('');
+      setNewTaskDueDate('');
       setIsAddingTask(false);
     }
   };
@@ -117,7 +119,7 @@ export function KanbanColumn({
     <Card
       ref={setSortableNodeRef}
       style={style}
-      className="w-72 flex-shrink-0 bg-muted/50"
+      className="w-72 flex-shrink-0 bg-muted/50 flex flex-col h-full"
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-center justify-between">
@@ -158,10 +160,10 @@ export function KanbanColumn({
           </DropdownMenu>
         </div>
       </CardHeader>
-      <CardContent className="p-3 pt-0">
+      <CardContent className="p-3 pt-0 flex-1 flex flex-col min-h-0">
         <div
           ref={setDroppableNodeRef}
-          className={`min-h-[200px] space-y-2 rounded-lg transition-colors ${isOver ? 'bg-primary/10' : ''}`}
+          className={`min-h-[100px] flex-1 overflow-y-auto space-y-2 rounded-lg transition-colors ${isOver ? 'bg-primary/10' : ''}`}
         >
           <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
             {tasks.map((task) => (
@@ -193,6 +195,13 @@ export function KanbanColumn({
                 if (e.key === 'Enter') handleAddTask();
                 if (e.key === 'Escape') setIsAddingTask(false);
               }}
+            />
+            <Input
+              type="date"
+              value={newTaskDueDate}
+              onChange={(e) => setNewTaskDueDate(e.target.value)}
+              placeholder="Due date (optional)"
+              className="text-sm"
             />
             <div className="flex gap-2">
               <Button size="sm" onClick={handleAddTask}>

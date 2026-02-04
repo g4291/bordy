@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Label, KanbanData } from '../types';
+import { Board, Column, Task, Label, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
 import * as db from '../lib/db';
 
 export function useKanban() {
@@ -58,7 +58,7 @@ export function useKanban() {
   };
 
   // Board operations
-  const createBoard = useCallback(async (title: string) => {
+  const createBoard = useCallback(async (title: string, template?: BoardTemplate) => {
     const now = Date.now();
     const board: Board = {
       id: uuidv4(),
@@ -69,16 +69,61 @@ export function useKanban() {
     await db.saveBoard(board);
     setBoards(prev => [...prev, board]);
     
-    // Create default columns
-    const defaultColumns = ['To Do', 'In Progress', 'Done'];
-    for (let i = 0; i < defaultColumns.length; i++) {
+    
+    // Create columns from template or default
+    const columnTitles = template 
+      ? template.columns.map((c: TemplateColumn) => c.title)
+      : ['To Do', 'In Progress', 'Done'];
+    
+    const createdColumns: Column[] = [];
+    for (let i = 0; i < columnTitles.length; i++) {
       const column: Column = {
         id: uuidv4(),
-        title: defaultColumns[i],
+        title: columnTitles[i],
         boardId: board.id,
         order: i,
       };
       await db.saveColumn(column);
+      createdColumns.push(column);
+    }
+    
+    // Create labels from template
+    const createdLabels: Label[] = [];
+    if (template && template.labels) {
+      for (const tLabel of template.labels as TemplateLabel[]) {
+        const label: Label = {
+          id: uuidv4(),
+          name: tLabel.name,
+          color: tLabel.color,
+          boardId: board.id,
+        };
+        await db.saveLabel(label);
+        createdLabels.push(label);
+      }
+    }
+    
+    // Create tasks from template
+    if (template && template.tasks) {
+      for (const tTask of template.tasks as TemplateTask[]) {
+        const targetColumn = createdColumns[tTask.columnIndex];
+        if (targetColumn) {
+          const taskLabelIds = tTask.labelIndices
+            .map((idx: number) => createdLabels[idx]?.id)
+            .filter((id: string | undefined): id is string => id !== undefined);
+          
+          const task: Task = {
+            id: uuidv4(),
+            title: tTask.title,
+            description: tTask.description,
+            columnId: targetColumn.id,
+            order: 0,
+            labelIds: taskLabelIds,
+            createdAt: now,
+            updatedAt: now,
+          };
+          await db.saveTask(task);
+        }
+      }
     }
     
     setCurrentBoard(board);
@@ -149,7 +194,7 @@ export function useKanban() {
   }, []);
 
   // Task operations
-  const createTask = useCallback(async (columnId: string, title: string, description?: string) => {
+  const createTask = useCallback(async (columnId: string, title: string, description?: string, dueDate?: number) => {
     const columnTasks = tasks.get(columnId) || [];
     const now = Date.now();
     
@@ -160,6 +205,7 @@ export function useKanban() {
       columnId,
       order: columnTasks.length,
       labelIds: [],
+      dueDate,
       createdAt: now,
       updatedAt: now,
     };
@@ -171,7 +217,7 @@ export function useKanban() {
     });
   }, [tasks]);
 
-  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => {
     const entries = Array.from(tasks.entries());
     for (const [columnId, columnTasks] of entries) {
       const task = columnTasks.find((t: Task) => t.id === id);

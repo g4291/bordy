@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Pencil, Trash2, MoreVertical, AlertTriangle } from 'lucide-react';
+import { GripVertical, Pencil, Trash2, MoreVertical, AlertTriangle, Calendar, Clock } from 'lucide-react';
 import { Task, Label } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -26,7 +26,7 @@ import { LabelPicker } from './LabelManager';
 interface TaskCardProps {
   task: Task;
   labels: Label[];
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate'>>) => void;
   onDelete: (id: string) => void;
 }
 
@@ -36,6 +36,9 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
   const [editTitle, setEditTitle] = useState(task.title);
   const [editDescription, setEditDescription] = useState(task.description || '');
   const [editLabelIds, setEditLabelIds] = useState<string[]>(task.labelIds || []);
+  const [editDueDate, setEditDueDate] = useState<string>(
+    task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : ''
+  );
 
   const {
     attributes,
@@ -56,6 +59,7 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
     setEditTitle(task.title);
     setEditDescription(task.description || '');
     setEditLabelIds(task.labelIds || []);
+    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
     setIsEditing(true);
   };
 
@@ -65,6 +69,7 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
         title: editTitle.trim(),
         description: editDescription.trim() || undefined,
         labelIds: editLabelIds,
+        dueDate: editDueDate ? new Date(editDueDate).getTime() : undefined,
       });
       setIsEditing(false);
     }
@@ -83,15 +88,85 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
     );
   };
 
+  // Helper functions for due date
+  const getDueDateStatus = (dueDate?: number): 'overdue' | 'today' | 'tomorrow' | 'soon' | 'ok' | null => {
+    if (!dueDate) return null;
+    const now = new Date();
+    const due = new Date(dueDate);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+    const diffTime = dueDay.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) return 'overdue';
+    if (diffDays === 0) return 'today';
+    if (diffDays === 1) return 'tomorrow';
+    if (diffDays <= 3) return 'soon';
+    return 'ok';
+  };
+
+  const formatDueDate = (dueDate: number, status: string): string => {
+    if (status === 'overdue') {
+      const now = new Date();
+      const due = new Date(dueDate);
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const dueDay = new Date(due.getFullYear(), due.getMonth(), due.getDate());
+      const diffTime = today.getTime() - dueDay.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (diffDays === 1) return 'Overdue 1 day';
+      return `Overdue ${diffDays} days`;
+    }
+    if (status === 'today') return 'Due today';
+    if (status === 'tomorrow') return 'Due tomorrow';
+    
+    const date = new Date(dueDate);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
+  const dueDateStatus = getDueDateStatus(task.dueDate);
+  
+  const dueDateStyles = {
+    overdue: {
+      badge: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-500/20 font-medium',
+      icon: Clock,
+    },
+    today: {
+      badge: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-500/20 font-medium',
+      icon: AlertTriangle,
+    },
+    tomorrow: {
+      badge: 'text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-500/20',
+      icon: Calendar,
+    },
+    soon: {
+      badge: 'text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-500/20',
+      icon: Calendar,
+    },
+    ok: {
+      badge: 'text-muted-foreground bg-muted',
+      icon: Calendar,
+    },
+  };
+
   // Get labels for this task
   const taskLabels = labels.filter((l) => task.labelIds?.includes(l.id));
+
+  // Card border style for overdue
+  const cardClassName = `mb-2 cursor-grab active:cursor-grabbing bg-card hover:bg-accent/50 transition-colors ${
+    dueDateStatus === 'overdue' 
+      ? 'border-red-500 dark:border-red-500 border-2 shadow-sm shadow-red-500/20' 
+      : dueDateStatus === 'today'
+      ? 'border-orange-400 dark:border-orange-500'
+      : ''
+  }`;
 
   return (
     <>
       <Card
         ref={setNodeRef}
         style={style}
-        className="mb-2 cursor-grab active:cursor-grabbing bg-card hover:bg-accent/50 transition-colors"
+        className={cardClassName}
       >
         <CardContent className="p-3">
           {/* Labels row */}
@@ -117,6 +192,12 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                   {task.description}
                 </p>
+              )}
+              {task.dueDate && dueDateStatus && (
+                <div className={`inline-flex items-center gap-1 mt-2 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}>
+                  {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
+                  <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
+                </div>
               )}
             </div>
             <DropdownMenu>
@@ -173,6 +254,15 @@ export function TaskCard({ task, labels, onUpdate, onDelete }: TaskCardProps) {
                 labels={labels}
                 selectedIds={editLabelIds}
                 onToggle={handleToggleLabel}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Due Date</label>
+              <Input
+                type="date"
+                value={editDueDate}
+                onChange={(e) => setEditDueDate(e.target.value)}
+                className="mt-1"
               />
             </div>
           </div>
