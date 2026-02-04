@@ -3,9 +3,10 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
-import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle, Palette } from 'lucide-react';
 import { Column, Task, Label } from '../types';
 import { TaskCard } from './TaskCard';
+import { ColorPicker } from './ColorPicker';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
@@ -14,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from './ui/dropdown-menu';
 import {
   Dialog,
@@ -29,7 +31,7 @@ interface KanbanColumnProps {
   tasks: Task[];
   allTasksCount?: number;  // Total tasks in column (before filtering)
   labels: Label[];
-  onUpdateColumn: (id: string, title: string) => void;
+  onUpdateColumn: (id: string, updates: { title?: string; color?: string }) => void;
   onDeleteColumn: (id: string) => void;
   onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
   onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
@@ -60,6 +62,7 @@ export function KanbanColumn({
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [editTitle, setEditTitle] = useState(column.title);
+  const [editColor, setEditColor] = useState(column.color || '');
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState<string>('');
@@ -88,9 +91,18 @@ export function KanbanColumn({
     transition,
   };
 
-  const handleSaveTitle = () => {
+  const handleOpenEdit = () => {
+    setEditTitle(column.title);
+    setEditColor(column.color || '');
+    setIsEditing(true);
+  };
+
+  const handleSaveColumn = () => {
     if (editTitle.trim()) {
-      onUpdateColumn(column.id, editTitle.trim());
+      onUpdateColumn(column.id, { 
+        title: editTitle.trim(), 
+        color: editColor || undefined 
+      });
       setIsEditing(false);
     }
   };
@@ -135,8 +147,13 @@ export function KanbanColumn({
   return (
     <Card
       ref={setSortableNodeRef}
-      style={style}
-      className="w-72 flex-shrink-0 bg-muted/50 flex flex-col h-full"
+      style={{
+        ...style,
+        borderTopColor: column.color || undefined,
+      }}
+      className={`w-72 flex-shrink-0 bg-muted/50 flex flex-col h-full ${
+        column.color ? 'border-t-4' : ''
+      }`}
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-center justify-between">
@@ -149,6 +166,12 @@ export function KanbanColumn({
               <GripVertical className="h-4 w-4" />
             </button>
             <CardTitle className="text-sm font-medium flex items-center gap-2">
+              {column.color && (
+                <span 
+                  className="w-2 h-2 rounded-full flex-shrink-0" 
+                  style={{ backgroundColor: column.color }}
+                />
+              )}
               {column.title}
               <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                 {displayCount}
@@ -162,10 +185,11 @@ export function KanbanColumn({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <DropdownMenuItem onClick={handleOpenEdit}>
                 <Pencil className="h-4 w-4 mr-2" />
-                Rename
+                Edit
               </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setIsDeleting(true)}
                 className="text-destructive"
@@ -246,25 +270,35 @@ export function KanbanColumn({
         )}
       </CardContent>
 
-      {/* Rename Column Dialog */}
+      {/* Edit Column Dialog */}
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename Column</DialogTitle>
+            <DialogTitle>Edit Column</DialogTitle>
           </DialogHeader>
-          <Input
-            value={editTitle}
-            onChange={(e) => setEditTitle(e.target.value)}
-            placeholder="Column title"
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSaveTitle();
-            }}
-          />
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Title</label>
+              <Input
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                placeholder="Column title"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSaveColumn();
+                }}
+              />
+            </div>
+            <ColorPicker
+              value={editColor}
+              onChange={setEditColor}
+              label="Column Color"
+            />
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditing(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSaveTitle}>Save</Button>
+            <Button onClick={handleSaveColumn}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

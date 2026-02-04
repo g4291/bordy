@@ -37,7 +37,7 @@ interface KanbanBoardProps {
   tasks: Map<string, Task[]>;
   labels: Label[];
   onCreateColumn: (title: string) => void;
-  onUpdateColumn: (id: string, title: string) => void;
+  onUpdateColumn: (id: string, updates: { title?: string; color?: string }) => void;
   onDeleteColumn: (id: string) => void;
   onReorderColumns: (columns: Column[]) => void;
   onCreateTask: (columnId: string, title: string, description?: string) => void;

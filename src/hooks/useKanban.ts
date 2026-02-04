@@ -69,19 +69,19 @@ export function useKanban() {
     await db.saveBoard(board);
     setBoards(prev => [...prev, board]);
     
-    
     // Create columns from template or default
-    const columnTitles = template 
-      ? template.columns.map((c: TemplateColumn) => c.title)
-      : ['To Do', 'In Progress', 'Done'];
-    
     const createdColumns: Column[] = [];
-    for (let i = 0; i < columnTitles.length; i++) {
+    const templateColumns = template?.columns || [];
+    const defaultTitles = ['To Do', 'In Progress', 'Done'];
+    const columnCount = template ? templateColumns.length : 3;
+    
+    for (let i = 0; i < columnCount; i++) {
       const column: Column = {
         id: uuidv4(),
-        title: columnTitles[i],
+        title: template ? templateColumns[i].title : defaultTitles[i],
         boardId: board.id,
         order: i,
+        color: template ? templateColumns[i].color : undefined,
       };
       await db.saveColumn(column);
       createdColumns.push(column);
@@ -168,14 +168,20 @@ export function useKanban() {
     setTasks(prev => new Map(prev).set(column.id, []));
   }, [currentBoard, columns.length]);
 
-  const updateColumn = useCallback(async (id: string, title: string) => {
+  const updateColumn = useCallback(async (id: string, updates: { title?: string; color?: string }) => {
     const column = columns.find(c => c.id === id);
     if (!column) return;
 
-    const updated: Column = { ...column, title };
+    const updated: Column = { 
+      ...column, 
+      ...updates,
+      // Handle color: if empty string, remove color; if undefined, keep existing
+      color: updates.color === '' ? undefined : (updates.color ?? column.color),
+    };
     await db.saveColumn(updated);
     setColumns(prev => prev.map(c => c.id === id ? updated : c));
   }, [columns]);
+
 
   const deleteColumn = useCallback(async (id: string) => {
     await db.deleteColumn(id);

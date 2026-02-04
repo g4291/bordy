@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.6.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.7.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -12,9 +12,10 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Multiple Boards** - Create and manage multiple Kanban boards
 - **Board Templates** - Start quickly with built-in templates or create your own
 - **Drag & Drop** - Intuitive drag and drop for tasks and columns
+- **🎨 Column Colors** - Color-code your columns for better visual organization
 - **Labels/Tags** - Organize tasks with colored labels
 - **Due Dates** - Set and track task deadlines with visual indicators
-- **🆕 Task Priority** - Set priority levels (Critical, High, Medium, Low) with visual indicators
+- **🚨 Task Priority** - Set priority levels (Critical, High, Medium, Low) with visual indicators
 - **🔍 Search & Filter** - Find tasks quickly by title, description, labels, priority, or due date
 - **✅ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
 - **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
@@ -28,6 +29,21 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 ![Kanban Board](./screenshots/board.png)
 ![Kanban Board Dark](./screenshots/board-dark.png)
 ![Task Detail](./screenshots/task-detail.png)
+
+## 🎨 Column Colors
+
+Columns can be color-coded for better visual organization:
+
+- **10 predefined colors** - Red, Orange, Yellow, Green, Blue, Purple, Pink, Cyan, Gray, or None
+- **Visual indicator** - Colored top border (4px) on column cards
+- **Color dot** - Small color indicator next to column title
+- **Template support** - Built-in templates come with pre-configured column colors
+
+**How to set column color:**
+1. Click the column menu (⋮)
+2. Select "Edit"
+3. Choose a color from the color picker
+4. Click "Save"
 
 ## 🚨 Task Priority
 
@@ -115,8 +131,9 @@ src/
 │   ├── ui/                  # shadcn/ui components (+ toast)
 │   ├── Header.tsx           # App header with board management
 │   ├── KanbanBoard.tsx      # Main board component
-│   ├── KanbanColumn.tsx     # Column component
+│   ├── KanbanColumn.tsx     # Column component with color support
 │   ├── TaskCard.tsx         # Task card with view/edit dialogs
+│   ├── ColorPicker.tsx      # Reusable color picker component
 │   ├── LabelBadge.tsx       # Label display component
 │   ├── LabelManager.tsx     # Label management dialog
 │   ├── PriorityBadge.tsx    # Priority badge component
@@ -137,10 +154,10 @@ src/
 │   └── useKeyboardShortcuts.ts  # Keyboard shortcuts logic
 ├── lib/
 │   ├── db.ts                # IndexedDB setup (v6)
-│   ├── templates.ts         # Built-in board templates
+│   ├── templates.ts         # Built-in board templates with colors
 │   └── utils.ts             # Utility functions
 ├── types/
-│   └── index.ts             # TypeScript interfaces (incl. TaskPriority)
+│   └── index.ts             # TypeScript interfaces (incl. TaskPriority, COLUMN_COLORS)
 ├── App.tsx
 └── index.css                # Tailwind & global styles
 ```
@@ -168,7 +185,7 @@ Bordy includes powerful search and filter capabilities:
 
 ## 📋 Built-in Templates
 
-Bordy comes with 9 ready-to-use templates:
+Bordy comes with 9 ready-to-use templates (all with column colors!):
 
 | Template | Description |
 |----------|-------------|
@@ -184,16 +201,23 @@ Bordy comes with 9 ready-to-use templates:
 
 You can also **save any board as a custom template** for reuse!
 
-## 📑 Data Format
+## 📊 Data Format
 
-Export/Import uses JSON format (version 1.6.0):
+Export/Import uses JSON format (version 1.7.0):
 
 ```json
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "exportedAt": 1704067200000,
   "boards": [...],
-  "columns": [...],
+  "columns": [
+    {
+      "id": "...",
+      "title": "To Do",
+      "color": "#3b82f6",
+      ...
+    }
+  ],
   "tasks": [
     {
       "id": "...",
@@ -221,7 +245,7 @@ Export/Import uses JSON format (version 1.6.0):
 - [x] Subtasks / checklists
 - [x] Keyboard shortcuts
 - [x] Task priority levels
-- [ ] Column colors
+- [x] Column colors
 - [ ] Task comments / activity log
 - [ ] Calendar view
 - [ ] Notifications / Reminders
@@ -236,7 +260,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📜 License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 

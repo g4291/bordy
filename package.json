@@ -1,6 +1,6 @@
 {
   "name": "bordy",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "description": "A simple, fast, and privacy-focused Kanban board application",
   "private": true,
   "dependencies": {
@@ -67,7 +67,8 @@
     "indexeddb",
     "offline-first",
     "keyboard-shortcuts",
-    "task-priority"
+    "task-priority",
+    "column-colors"
   ],
   "author": "",
   "license": "MIT"

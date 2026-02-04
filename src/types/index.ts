@@ -73,8 +73,20 @@ export const LABEL_COLORS = [
   { name: 'Gray', value: '#6b7280' },
 ] as const;
 
-// Template types
-// Template types
+// Predefined column colors
+export const COLUMN_COLORS = [
+  { name: 'None', value: '' },
+  { name: 'Red', value: '#ef4444' },
+  { name: 'Orange', value: '#f97316' },
+  { name: 'Yellow', value: '#eab308' },
+  { name: 'Green', value: '#22c55e' },
+  { name: 'Blue', value: '#3b82f6' },
+  { name: 'Purple', value: '#8b5cf6' },
+  { name: 'Pink', value: '#ec4899' },
+  { name: 'Cyan', value: '#06b6d4' },
+  { name: 'Gray', value: '#6b7280' },
+] as const;
+
 export interface TemplateTask {
   title: string;
   description?: string;
@@ -85,7 +97,9 @@ export interface TemplateTask {
 
 export interface TemplateColumn {
   title: string;
+  color?: string;
 }
+
 
 export interface TemplateLabel {
   name: string;
