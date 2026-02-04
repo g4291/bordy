@@ -66,18 +66,30 @@ export function TaskDetailDialog({
   const [editDueDate, setEditDueDate] = useState<string>('');
   const [editPriority, setEditPriority] = useState<TaskPriority>('none');
 
-  // Reset state when task changes
+  // Track which task we're editing to reset state only when opening different task
+  const [currentTaskId, setCurrentTaskId] = React.useState<string | null>(null);
+
+
+  // Reset state only when opening a DIFFERENT task (not on every task update)
   React.useEffect(() => {
-    if (task) {
+    if (task && task.id !== currentTaskId) {
+      setCurrentTaskId(task.id);
       setEditTitle(task.title);
       setEditDescription(task.description || '');
       setEditLabelIds(task.labelIds || []);
       setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
       setEditPriority(task.priority || 'none');
+      setIsEditing(false);
+      setIsDeleting(false);
     }
-    setIsEditing(false);
-    setIsDeleting(false);
-  }, [task]);
+  }, [task, currentTaskId]);
+
+  // Reset currentTaskId when dialog closes
+  React.useEffect(() => {
+    if (!open) {
+      setCurrentTaskId(null);
+    }
+  }, [open]);
 
   if (!task) return null;
 
