@@ -1,5 +1,8 @@
-# Bordy
+<p align="center">
+  <img src="public/logo.svg" alt="Logo" width="100"/>
+</p>
 
+# Bordy
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![Version](https://img.shields.io/badge/version-2.1.2-green.svg)
@@ -27,12 +30,6 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **📎 Attachments** - Attach images and files to tasks (up to 10MB per file)
 - **100% Local Storage** - Your data never leaves your browser
 - **No Account Required** - Start using immediately, no sign-up needed
-
-## 📸 Screenshots
-
-![Kanban Board](./screenshots/board.png)
-![Kanban Board Dark](./screenshots/board-dark.png)
-![Task Detail](./screenshots/task-detail.png)
 
 ## 📅 View Modes
 
@@ -133,6 +130,15 @@ Bordy supports keyboard shortcuts for faster navigation and task management:
 - [Playwright](https://playwright.dev/) - E2E tests
 - [@dnd-kit](https://dndkit.com/) - Drag and drop
 - [idb](https://github.com/jakearchibald/idb) - IndexedDB wrapper
+
+## 📸 Screenshots
+
+![Kanban Board](./screenshots/board.png)
+![Kanban Board Dark](./screenshots/board-dark.png)
+![Task Detail](./screenshots/task.png)
+![Calendar](./screenshots/calendar.png)
+![Agenda](./screenshots/agenda.png)
+
 
 ## 🚀 Getting Started
 
