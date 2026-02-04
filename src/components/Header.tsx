@@ -6,7 +6,6 @@ import {
   Trash2,
   Pencil,
   ChevronDown,
-  LayoutDashboard,
   Moon,
   Sun,
   AlertTriangle,
@@ -14,6 +13,7 @@ import {
   FileStack,
   Keyboard,
 } from 'lucide-react';
+import { Logo } from './Logo';
 import { Board, Label, BoardTemplate, TaskPriority } from '../types';
 import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
 import { Button } from './ui/button';
@@ -199,7 +199,7 @@ export function Header({
         {/* Left section: Logo, Board selector, Board actions */}
         <div className="flex items-center gap-4 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <LayoutDashboard className="h-6 w-6 text-primary" />
+            <Logo size={28} />
             <h1 className="text-xl font-bold hidden sm:block">Bordy</h1>
           </div>
 

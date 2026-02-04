@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Use - Bordy</title>
+  <meta name="description" content="Terms of Use and Disclaimer for Bordy - Free Open Source Kanban Board Application">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  
+  <style>
+    /* CSS Variables - matching app theme */
+    :root {
+      --background: 0 0% 100%;
+      --foreground: 222.2 84% 4.9%;
+      --card: 0 0% 100%;
+      --card-foreground: 222.2 84% 4.9%;
+      --primary: 222.2 47.4% 11.2%;
+      --primary-foreground: 210 40% 98%;
+      --secondary: 210 40% 96.1%;
+      --secondary-foreground: 222.2 47.4% 11.2%;
+      --muted: 210 40% 96.1%;
+      --muted-foreground: 215.4 16.3% 46.9%;
+      --accent: 210 40% 96.1%;
+      --accent-foreground: 222.2 47.4% 11.2%;
+      --border: 214.3 31.8% 91.4%;
+      --radius: 0.5rem;
+    }
+
+    .dark {
+      --background: 222.2 84% 4.9%;
+      --foreground: 210 40% 98%;
+      --card: 222.2 84% 4.9%;
+      --card-foreground: 210 40% 98%;
+      --primary: 210 40% 98%;
+      --primary-foreground: 222.2 47.4% 11.2%;
+      --secondary: 217.2 32.6% 17.5%;
+      --secondary-foreground: 210 40% 98%;
+      --muted: 217.2 32.6% 17.5%;
+      --muted-foreground: 215 20.2% 65.1%;
+      --accent: 217.2 32.6% 17.5%;
+      --accent-foreground: 210 40% 98%;
+      --border: 217.2 32.6% 17.5%;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      line-height: 1.7;
+      min-height: 100vh;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: hsl(var(--muted));
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: hsl(var(--muted-foreground) / 0.3);
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: hsl(var(--muted-foreground) / 0.5);
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: hsl(var(--background) / 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid hsl(var(--border));
+    }
+
+    .header-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: hsl(var(--foreground));
+    }
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .theme-toggle {
+      background: hsl(var(--secondary));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 0.5rem;
+      cursor: pointer;
+      color: hsl(var(--foreground));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .theme-toggle:hover {
+      background: hsl(var(--accent));
+    }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-weight: 500;
+      font-size: 0.875rem;
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+    }
+
+    .btn-secondary {
+      background: hsl(var(--secondary));
+      color: hsl(var(--secondary-foreground));
+      border: 1px solid hsl(var(--border));
+    }
+
+    .btn-secondary:hover {
+      background: hsl(var(--accent));
+    }
+
+    /* Main Content */
+    main {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 7rem 2rem 4rem;
+    }
+
+    .page-header {
+      margin-bottom: 3rem;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid hsl(var(--border));
+    }
+
+    .page-header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+
+    .page-header .last-updated {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+    }
+
+    .disclaimer-banner {
+      background: hsl(var(--secondary));
+      border: 1px solid hsl(var(--border));
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+    }
+
+    .disclaimer-banner .icon {
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+
+    .disclaimer-banner h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .disclaimer-banner p {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.9375rem;
+    }
+
+    .content-section {
+      margin-bottom: 2.5rem;
+    }
+
+    .content-section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: hsl(var(--foreground));
+    }
+
+    .content-section h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: hsl(var(--foreground));
+    }
+
+    .content-section p {
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 1rem;
+    }
+
+    .content-section ul {
+      color: hsl(var(--muted-foreground));
+      margin-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .content-section li {
+      margin-bottom: 0.5rem;
+    }
+
+    .content-section a {
+      color: hsl(var(--primary));
+      text-decoration: underline;
+    }
+
+    .content-section a:hover {
+      opacity: 0.8;
+    }
+
+    .highlight-box {
+      background: hsl(var(--muted));
+      border-left: 4px solid hsl(var(--primary));
+      padding: 1rem 1.5rem;
+      margin: 1.5rem 0;
+      border-radius: 0 var(--radius) var(--radius) 0;
+    }
+
+    .highlight-box p {
+      margin-bottom: 0;
+    }
+
+    /* Footer */
+    footer {
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid hsl(var(--border));
+    }
+
+    footer p {
+      color: hsl(var(--muted-foreground));
+      font-size: 0.875rem;
+    }
+
+    footer a {
+      color: hsl(var(--foreground));
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    footer .footer-links {
+      margin-bottom: 1rem;
+    }
+
+    footer .footer-links a {
+      margin: 0 1rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header-content {
+        padding: 1rem;
+      }
+
+      main {
+        padding: 6rem 1rem 3rem;
+      }
+
+      .page-header h1 {
+        font-size: 2rem;
+      }
+
+      .disclaimer-banner {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-content">
+      <a href="/" class="logo">
+        <img src="logo.svg" alt="Bordy" class="logo-icon">
+        <span>Bordy</span>
+      </a>
+      <div class="header-actions">
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+          <svg class="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+          <svg class="moon-icon" style="display: none;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+          </svg>
+        </button>
+        <a href="/" class="btn btn-secondary">
+          ← Back to Home
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-header">
+      <h1>Terms of Use</h1>
+      <p class="last-updated">Last updated: February 4, 2026</p>
+    </div>
+
+    <div class="disclaimer-banner">
+      <div class="icon">⚠️</div>
+      <div>
+        <h2>Important Disclaimer</h2>
+        <p>Bordy is a <strong>free, open-source project</strong> provided "as is" without any warranties. By using this application, you acknowledge and accept all terms outlined below.</p>
+      </div>
+    </div>
+
+    <section class="content-section">
+      <h2>1. About Bordy</h2>
+      <p>Bordy is a free, open-source kanban board application designed for personal productivity and task management. The application runs entirely in your web browser and stores all data locally on your device using IndexedDB technology.</p>
+      
+      <div class="highlight-box">
+        <p><strong>Open Source:</strong> Bordy is released as open-source software on <a href="https://github.com/g4291/bordy" target="_blank" rel="noopener noreferrer">GitHub</a>. You are free to use, modify, and distribute it in accordance with the applicable open-source license.</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>2. No Warranty</h2>
+      <p>This software is provided <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> without warranty of any kind, express or implied, including but not limited to:</p>
+      <ul>
+        <li>The warranties of merchantability</li>
+        <li>Fitness for a particular purpose</li>
+        <li>Non-infringement</li>
+        <li>Accuracy, reliability, or completeness of any content</li>
+        <li>Uninterrupted or error-free operation</li>
+      </ul>
+      <p>The entire risk as to the quality and performance of the software is with you.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>3. Limitation of Liability</h2>
+      <p>In no event shall the authors, contributors, or copyright holders be liable for any claim, damages, or other liability, whether in an action of contract, tort, or otherwise, arising from, out of, or in connection with the software or the use or other dealings in the software.</p>
+      
+      <p>This includes, but is not limited to:</p>
+      <ul>
+        <li>Loss of data or information</li>
+        <li>Loss of profits or revenue</li>
+        <li>Business interruption</li>
+        <li>Computer failure or malfunction</li>
+        <li>Any other commercial damages or losses</li>
+      </ul>
+
+      <div class="highlight-box">
+        <p><strong>Data Responsibility:</strong> You are solely responsible for backing up your data. While Bordy provides export functionality, we cannot guarantee data recovery in case of loss.</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>4. Local Data Storage</h2>
+      <p>Bordy stores all your data locally in your web browser using IndexedDB. This means:</p>
+      <ul>
+        <li>Your data never leaves your device (unless you explicitly export it)</li>
+        <li>We do not collect, store, or have access to your tasks, boards, or any personal information</li>
+        <li>Clearing your browser data will permanently delete your Bordy data</li>
+        <li>Data is not synced across devices or browsers</li>
+      </ul>
+      
+      <h3>Data Persistence</h3>
+      <p>Browser-stored data may be cleared by:</p>
+      <ul>
+        <li>Manually clearing browser cache/data</li>
+        <li>Browser storage limits being exceeded</li>
+        <li>Browser updates or reinstallation</li>
+        <li>Operating system maintenance</li>
+        <li>Using private/incognito browsing mode</li>
+      </ul>
+      
+      <p><strong>We strongly recommend regularly exporting your data as a backup.</strong></p>
+    </section>
+
+    <section class="content-section">
+      <h2>5. Use at Your Own Risk</h2>
+      <p>By using Bordy, you acknowledge that:</p>
+      <ul>
+        <li>You use this software entirely at your own risk</li>
+        <li>You are responsible for evaluating the suitability of this software for your needs</li>
+        <li>You should not rely on this software for critical or irreplaceable data without maintaining external backups</li>
+        <li>The software may contain bugs or errors that could affect its functionality</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>6. No Support Obligation</h2>
+      <p>As a free, open-source project:</p>
+      <ul>
+        <li>There is no obligation to provide technical support</li>
+        <li>There is no guarantee of bug fixes or updates</li>
+        <li>There is no commitment to maintain backward compatibility</li>
+        <li>The project may be discontinued at any time without notice</li>
+      </ul>
+    </section>
+
+    <section class="content-section">
+      <h2>7. Third-Party Content</h2>
+      <p>Bordy may include or rely on third-party libraries and components. These are subject to their own respective licenses and terms. We make no representations or warranties regarding third-party content.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>8. Modifications to Terms</h2>
+      <p>We reserve the right to modify these terms at any time. Continued use of Bordy after any changes constitutes acceptance of the new terms. We recommend reviewing this page periodically.</p>
+    </section>
+
+    <section class="content-section">
+      <h2>9. Acceptance of Terms</h2>
+      <p>By accessing or using Bordy, you agree to be bound by these Terms of Use. If you do not agree with any part of these terms, please do not use the application.</p>
+      
+      <div class="highlight-box">
+        <p><strong>Summary:</strong> Bordy is a free tool provided as-is. We're not responsible for any issues, data loss, or damages. Use it freely, but back up your data and don't rely on it for anything critical without proper safeguards.</p>
+      </div>
+    </section>
+
+    <section class="content-section">
+      <h2>10. Contact</h2>
+      <p>For questions about these terms or the project, please visit our <a href="https://github.com/g4291/bordy" target="_blank" rel="noopener noreferrer">GitHub repository</a> or contact us through the channels provided there.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-links">
+      <a href="/">Home</a>
+      <a href="https://app.bordy.online">Launch App</a>
+      <a href="/terms.html">Terms of Use</a>
+      <a href="https://github.com/g4291/bordy" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+    <p>© 2026 Bordy. Made with ❤️ for productivity.</p>
+  </footer>
+
+  <script>
+    // Theme toggle
+    const themeToggle = document.getElementById('themeToggle');
+    const sunIcon = themeToggle.querySelector('.sun-icon');
+    const moonIcon = themeToggle.querySelector('.moon-icon');
+    
+    // Check for saved theme or system preference
+    const savedTheme = localStorage.getItem('bordy-landing-theme');
+    const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+    if (savedTheme === 'dark' || (!savedTheme && systemDark)) {
+      document.body.classList.add('dark');
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'block';
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('dark');
+      const isDark = document.body.classList.contains('dark');
+      
+      sunIcon.style.display = isDark ? 'none' : 'block';
+      moonIcon.style.display = isDark ? 'block' : 'none';
+      
+      localStorage.setItem('bordy-landing-theme', isDark ? 'dark' : 'light');
+    });
+  </script>
+</body>
+</html>
