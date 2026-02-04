@@ -4,7 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
 import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle, Palette } from 'lucide-react';
-import { Column, Task, Label, Comment } from '../types';
+import { Column, Task, Label, Comment, Attachment } from '../types';
 import { TaskCard } from './TaskCard';
 import { ColorPicker } from './ColorPicker';
 import { Button } from './ui/button';
@@ -45,6 +45,9 @@ interface KanbanColumnProps {
   onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
   onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
   onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
+  // Attachment handlers
+  onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
+  onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
 }
 
 export function KanbanColumn({
@@ -65,9 +68,12 @@ export function KanbanColumn({
   onAddComment,
   onUpdateComment,
   onDeleteComment,
+  onAddAttachment,
+  onDeleteAttachment,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -228,6 +234,8 @@ export function KanbanColumn({
                 onAddComment={onAddComment}
                 onUpdateComment={onUpdateComment}
                 onDeleteComment={onDeleteComment}
+                onAddAttachment={onAddAttachment}
+                onDeleteAttachment={onDeleteAttachment}
               />
             ))}
           </SortableContext>

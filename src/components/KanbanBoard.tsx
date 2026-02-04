@@ -18,7 +18,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { Plus, SearchX } from 'lucide-react';
-import { Column, Task, Label, Comment } from '../types';
+import { Column, Task, Label, Comment, Attachment } from '../types';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskCard } from './TaskCard';
 import { Button } from './ui/button';
@@ -52,6 +52,9 @@ interface KanbanBoardProps {
   onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
   onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
   onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
+  // Attachment handlers
+  onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
+  onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
   // Filter props
   filterTasks: (tasks: Task[]) => Task[];
   hasActiveFilters: boolean;
@@ -86,6 +89,8 @@ export function KanbanBoard({
   filterTasks,
   hasActiveFilters,
   onClearFilters,
+  onAddAttachment,
+  onDeleteAttachment,
   isNewTaskDialogOpen,
   setIsNewTaskDialogOpen,
   onDialogOpenChange,
@@ -335,6 +340,8 @@ export function KanbanBoard({
                 onUpdateComment={onUpdateComment}
                 onDeleteComment={onDeleteComment}
                 hasActiveFilters={hasActiveFilters}
+                onAddAttachment={onAddAttachment}
+                onDeleteAttachment={onDeleteAttachment}
               />
             ))}
 
@@ -363,6 +370,8 @@ export function KanbanBoard({
                 onAddComment={async () => undefined}
                 onUpdateComment={async () => {}}
                 onDeleteComment={async () => {}}
+                onAddAttachment={async () => {}}
+                onDeleteAttachment={async () => {}}
                 onDelete={() => {}}
               />
             </div>

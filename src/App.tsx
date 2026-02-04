@@ -40,6 +40,8 @@ function AppContent() {
     addComment,
     updateComment,
     deleteComment,
+    addAttachment,
+    deleteAttachment,
     createLabel,
     updateLabel,
     deleteLabel,
@@ -561,6 +563,9 @@ function AppContent() {
               onAddComment={addComment}
               onUpdateComment={updateComment}
               onDeleteComment={deleteComment}
+              // Attachment props
+              onAddAttachment={addAttachment}
+              onDeleteAttachment={deleteAttachment}
               // Keyboard shortcut props
               isNewTaskDialogOpen={isNewTaskDialogOpen}
               setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
@@ -626,6 +631,8 @@ function AppContent() {
         onAddComment={addComment}
         onUpdateComment={updateComment}
         onDeleteComment={deleteComment}
+        onAddAttachment={addAttachment}
+        onDeleteAttachment={deleteAttachment}
       />
     </div>
   );

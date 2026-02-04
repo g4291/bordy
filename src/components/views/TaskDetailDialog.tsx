@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Pencil, Trash2, AlertTriangle, Calendar, Clock, X } from 'lucide-react';
-import { Task, Label, TaskPriority, Comment, PRIORITY_CONFIG } from '../../types';
+import { Pencil, Trash2, AlertTriangle, Calendar, Clock } from 'lucide-react';
+import { Task, Label, TaskPriority, Comment, Attachment } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Checkbox } from '../ui/checkbox';
@@ -21,6 +21,7 @@ import { PrioritySelect } from '../PrioritySelect';
 import { CommentList } from '../CommentList';
 import { MarkdownRenderer } from '../MarkdownRenderer';
 import { MarkdownEditor } from '../MarkdownEditor';
+import { AttachmentList } from '../AttachmentList';
 
 interface TaskDetailDialogProps {
   task: Task | null;
@@ -36,6 +37,8 @@ interface TaskDetailDialogProps {
   onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
   onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
   onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
+  onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
+  onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
 }
 
 export function TaskDetailDialog({
@@ -52,6 +55,8 @@ export function TaskDetailDialog({
   onAddComment,
   onUpdateComment,
   onDeleteComment,
+  onAddAttachment,
+  onDeleteAttachment,
 }: TaskDetailDialogProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -112,6 +117,14 @@ export function TaskDetailDialog({
     );
   };
 
+  const handleAddAttachment = async (attachment: Attachment) => {
+    await onAddAttachment(task.id, attachment);
+  };
+
+  const handleDeleteAttachment = async (attachmentId: string) => {
+    await onDeleteAttachment(task.id, attachmentId);
+  };
+
   // Helper functions for due date
   const getDueDateStatus = (dueDate?: number): 'overdue' | 'today' | 'tomorrow' | 'soon' | 'ok' | null => {
     if (!dueDate) return null;
@@ -166,13 +179,14 @@ export function TaskDetailDialog({
   const taskLabels = labels.filter((l) => task.labelIds?.includes(l.id));
   const subtasks = task.subtasks || [];
   const comments = task.comments || [];
+  const attachments = task.attachments || [];
   const priority = task.priority || 'none';
 
   // View mode dialog
   if (!isEditing && !isDeleting) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-start justify-between gap-4">
               <DialogTitle className="text-xl">{task.title}</DialogTitle>
@@ -247,6 +261,15 @@ export function TaskDetailDialog({
               </div>
             )}
 
+            {/* Attachments section */}
+            <div className="border rounded-lg p-4 bg-muted/30">
+              <AttachmentList
+                attachments={attachments}
+                onAdd={handleAddAttachment}
+                onDelete={handleDeleteAttachment}
+              />
+            </div>
+
             {/* Comments section - always visible in view mode */}
             <div className="border rounded-lg p-4 bg-muted/30">
               <CommentList
@@ -259,9 +282,9 @@ export function TaskDetailDialog({
             </div>
 
             {/* Empty state - only if no content at all */}
-            {subtasks.length === 0 && !task.description && priority === 'none' && comments.length === 0 && (
+            {subtasks.length === 0 && !task.description && priority === 'none' && comments.length === 0 && attachments.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                No description, checklist items, or comments yet.
+                No description, checklist items, attachments, or comments yet.
               </p>
             )}
           </div>
@@ -319,7 +342,7 @@ export function TaskDetailDialog({
   // Edit mode dialog
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) setIsEditing(false); onOpenChange(o); }}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Task</DialogTitle>
         </DialogHeader>
@@ -357,6 +380,15 @@ export function TaskDetailDialog({
               onToggleSubtask={onToggleSubtask}
               onDeleteSubtask={onDeleteSubtask}
               onUpdateSubtask={onUpdateSubtask}
+            />
+          </div>
+
+          {/* Attachments section in edit mode */}
+          <div className="border rounded-lg p-3 bg-muted/30">
+            <AttachmentList
+              attachments={attachments}
+              onAdd={handleAddAttachment}
+              onDelete={handleDeleteAttachment}
             />
           </div>
 

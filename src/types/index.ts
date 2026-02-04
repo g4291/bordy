@@ -30,6 +30,61 @@ export interface Comment {
   updatedAt?: number;  // timestamp when edited
 }
 
+// ==========================================
+// Attachment Types (v2.1.0)
+// ==========================================
+
+export interface Attachment {
+  id: string;
+  name: string;           // original filename
+  type: string;           // MIME type (image/png, application/pdf, etc.)
+  size: number;           // size in bytes
+  data: string;           // base64 encoded data
+  createdAt: number;
+  thumbnail?: string;     // base64 thumbnail for images (smaller preview)
+}
+
+// Attachment constants
+export const ATTACHMENT_CONFIG = {
+  maxFileSize: 10 * 1024 * 1024,  // 10 MB
+  maxThumbnailSize: 200,          // 200px max dimension for thumbnails
+  thumbnailQuality: 0.7,          // JPEG quality for thumbnails
+  supportedImageTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+} as const;
+
+// Helper to check if file is an image
+export const isImageType = (mimeType: string): boolean => {
+  return ATTACHMENT_CONFIG.supportedImageTypes.includes(mimeType as any) || mimeType.startsWith('image/');
+};
+
+// Helper to format file size
+export const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+};
+
+// Helper to get file extension
+export const getFileExtension = (filename: string): string => {
+  return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2).toLowerCase();
+};
+
+// Helper to get icon for file type
+export const getFileIcon = (mimeType: string): string => {
+  if (mimeType.startsWith('image/')) return '🖼️';
+  if (mimeType.startsWith('video/')) return '🎬';
+  if (mimeType.startsWith('audio/')) return '🎵';
+  if (mimeType === 'application/pdf') return '📄';
+  if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return '📊';
+  if (mimeType.includes('document') || mimeType.includes('word')) return '📝';
+  if (mimeType.includes('presentation') || mimeType.includes('powerpoint')) return '📽️';
+  if (mimeType.includes('zip') || mimeType.includes('archive') || mimeType.includes('compressed')) return '📦';
+  if (mimeType.includes('text/')) return '📃';
+  return '📎';
+};
+
 export interface Task {
   id: string;
   title: string;
@@ -43,6 +98,7 @@ export interface Task {
   updatedAt: number;
   priority: TaskPriority;
   comments: Comment[];
+  attachments: Attachment[];  // Added in v2.1.0
 }
 
 export interface Column {

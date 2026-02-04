@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock } from 'lucide-react';
-import { Task, Label, Comment, PRIORITY_CONFIG } from '../types';
+import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock, Paperclip } from 'lucide-react';
+import { Task, Label, Comment, Attachment, PRIORITY_CONFIG } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import {
@@ -29,6 +29,9 @@ interface TaskCardProps {
   onAddComment: (taskId: string, text: string) => Promise<Comment | undefined>;
   onUpdateComment: (taskId: string, commentId: string, text: string) => Promise<void>;
   onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
+  // Attachment handlers
+  onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
+  onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
 }
 
 export function TaskCard({ 
@@ -43,6 +46,8 @@ export function TaskCard({
   onAddComment,
   onUpdateComment,
   onDeleteComment,
+  onAddAttachment,
+  onDeleteAttachment,
 }: TaskCardProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -137,6 +142,9 @@ export function TaskCard({
   // Get subtasks
   const subtasks = task.subtasks || [];
 
+  // Get attachments count
+  const attachmentCount = (task.attachments || []).length;
+
   // Get priority
   const priority = task.priority || 'none';
   const priorityConfig = PRIORITY_CONFIG[priority];
@@ -195,7 +203,7 @@ export function TaskCard({
                 </div>
               )}
 
-              {/* Priority and Due Date badges */}
+              {/* Priority, Due Date, and Attachments badges */}
               <div className="flex flex-wrap items-center gap-2 mt-2">
                 {priority !== 'none' && (
                   <PriorityBadge priority={priority} size="sm" />
@@ -204,6 +212,12 @@ export function TaskCard({
                   <div className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}>
                     {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
                     <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
+                  </div>
+                )}
+                {attachmentCount > 0 && (
+                  <div className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded text-muted-foreground bg-muted">
+                    <Paperclip className="h-3 w-3" />
+                    <span>{attachmentCount}</span>
                   </div>
                 )}
               </div>
@@ -258,6 +272,8 @@ export function TaskCard({
         onAddComment={onAddComment}
         onUpdateComment={onUpdateComment}
         onDeleteComment={onDeleteComment}
+        onAddAttachment={onAddAttachment}
+        onDeleteAttachment={onDeleteAttachment}
       />
     </>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Label, Subtask, Comment, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
+import { Board, Column, Task, Label, Subtask, Comment, Attachment, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
 import * as db from '../lib/db';
 
 export function useKanban() {
@@ -119,6 +119,7 @@ export function useKanban() {
             order: 0,
             comments: [],
             subtasks: [],
+            attachments: [],
             labelIds: taskLabelIds,
             priority: tTask.priority || 'none',
             createdAt: now,
@@ -216,6 +217,7 @@ export function useKanban() {
       labelIds: [],
       comments: [],
       subtasks: [],
+      attachments: [],
       priority: 'none',
       dueDate,
       createdAt: now,
@@ -533,6 +535,49 @@ export function useKanban() {
     }
   }, [tasks]);
 
+  // Attachment operations
+  const addAttachment = useCallback(async (taskId: string, attachment: Attachment): Promise<void> => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          attachments: [...(task.attachments || []), attachment],
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
+  const deleteAttachment = useCallback(async (taskId: string, attachmentId: string): Promise<void> => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const updated: Task = {
+          ...task,
+          attachments: (task.attachments || []).filter((a: Attachment) => a.id !== attachmentId),
+          updatedAt: Date.now(),
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
+  }, [tasks]);
+
   // Export/Import operations
   const exportData = useCallback(async (): Promise<{ success: boolean; message: string; boardCount?: number }> => {
     try {
@@ -641,6 +686,10 @@ export function useKanban() {
     addComment,
     updateComment,
     deleteComment,
+    
+    // Attachment operations
+    addAttachment,
+    deleteAttachment,
     
     // Export/Import
     exportData,
