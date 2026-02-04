@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, CheckCircle2 } from 'lucide-react';
 import {
   DndContext,
   DragOverlay,
@@ -347,13 +347,29 @@ export function CalendarView({
                     onTaskClick(task);
                     setDayTasksModal(null);
                   }}
-                  className="w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors"
+                  className={`
+                    w-full text-left p-3 rounded-lg border hover:bg-accent transition-colors
+                    flex items-start gap-3
+                    ${task.completed ? 'opacity-60' : ''}
+                  `}
                 >
-                  <p className="font-medium">{task.title}</p>
-                  {task.description && (
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                      {task.description}
+                  {task.completed && (
+                    <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                      {task.title}
                     </p>
+                    {task.description && (
+                      <p className={`text-sm text-muted-foreground mt-1 line-clamp-2 ${task.completed ? 'line-through' : ''}`}>
+                        {task.description}
+                      </p>
+                    )}
+                  </div>
+                  {task.completed && (
+                    <span className="text-xs text-green-600 dark:text-green-400 font-medium flex-shrink-0">
+                      Done
+                    </span>
                   )}
                 </button>
               ))}

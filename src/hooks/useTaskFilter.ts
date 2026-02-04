@@ -2,12 +2,14 @@ import { useState, useCallback, useEffect, useMemo } from 'react';
 import { Task, TaskPriority } from '../types';
 
 export type DueDateFilter = 'all' | 'overdue' | 'today' | 'this-week' | 'no-date';
+export type CompletionFilter = 'all' | 'incomplete' | 'completed';
 
 export interface TaskFilters {
   searchQuery: string;
   labelIds: string[];
   dueDateFilter: DueDateFilter;
   priorities: TaskPriority[];
+  completionFilter: CompletionFilter;
 }
 
 const STORAGE_KEY = 'bordy-task-filters';
@@ -17,6 +19,7 @@ const defaultFilters: TaskFilters = {
   labelIds: [],
   dueDateFilter: 'all',
   priorities: [],
+  completionFilter: 'all',
 };
 
 // Helper functions for date comparisons
@@ -24,8 +27,8 @@ const getStartOfDay = (date: Date): Date => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 };
 
-const isOverdue = (dueDate?: number): boolean => {
-  if (!dueDate) return false;
+const isOverdue = (dueDate?: number, completed?: boolean): boolean => {
+  if (!dueDate || completed) return false; // Completed tasks are never overdue
   const today = getStartOfDay(new Date());
   const due = getStartOfDay(new Date(dueDate));
   return due.getTime() < today.getTime();
@@ -70,6 +73,7 @@ export function useTaskFilter(boardId?: string) {
           labelIds: parsed.labelIds || [],
           dueDateFilter: parsed.dueDateFilter || 'all',
           priorities: parsed.priorities || [],
+          completionFilter: parsed.completionFilter || 'all',
         });
       } else {
         setFilters(defaultFilters);
@@ -117,6 +121,10 @@ export function useTaskFilter(boardId?: string) {
     }));
   }, []);
 
+  const setCompletionFilter = useCallback((filter: CompletionFilter) => {
+    setFilters(prev => ({ ...prev, completionFilter: filter }));
+  }, []);
+
   const clearFilters = useCallback(() => {
     setFilters(defaultFilters);
   }, []);
@@ -147,9 +155,19 @@ export function useTaskFilter(boardId?: string) {
     setFilters(prev => ({ ...prev, priorities: [] }));
   }, []);
 
+  const clearCompletionFilter = useCallback(() => {
+    setFilters(prev => ({ ...prev, completionFilter: 'all' }));
+  }, []);
+
   const filterTasks = useCallback((tasks: Task[]): Task[] => {
     return tasks.filter(task => {
-      // 1. Search query (title OR description)
+      // 1. Completion filter (check first for performance)
+      if (filters.completionFilter !== 'all') {
+        if (filters.completionFilter === 'completed' && !task.completed) return false;
+        if (filters.completionFilter === 'incomplete' && task.completed) return false;
+      }
+
+      // 2. Search query (title OR description)
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase().trim();
         const matchesTitle = task.title.toLowerCase().includes(query);
@@ -157,20 +175,20 @@ export function useTaskFilter(boardId?: string) {
         if (!matchesTitle && !matchesDesc) return false;
       }
 
-      // 2. Label filter (OR logic - task must have at least one selected label)
+      // 3. Label filter (OR logic - task must have at least one selected label)
       if (filters.labelIds.length > 0) {
         const hasMatchingLabel = task.labelIds.some(id => filters.labelIds.includes(id));
         if (!hasMatchingLabel) return false;
       }
 
-      // 3. Due date filter
+      // 4. Due date filter
       if (filters.dueDateFilter !== 'all') {
         switch (filters.dueDateFilter) {
           case 'no-date':
             if (task.dueDate) return false;
             break;
           case 'overdue':
-            if (!isOverdue(task.dueDate)) return false;
+            if (!isOverdue(task.dueDate, task.completed)) return false;
             break;
           case 'today':
             if (!isToday(task.dueDate)) return false;
@@ -181,7 +199,7 @@ export function useTaskFilter(boardId?: string) {
         }
       }
 
-      // 4. Priority filter (OR logic - task must have one of selected priorities)
+      // 5. Priority filter (OR logic - task must have one of selected priorities)
       if (filters.priorities.length > 0) {
         const taskPriority = task.priority || 'none';
         if (!filters.priorities.includes(taskPriority)) return false;
@@ -196,7 +214,8 @@ export function useTaskFilter(boardId?: string) {
       filters.searchQuery !== '' ||
       filters.labelIds.length > 0 ||
       filters.dueDateFilter !== 'all' ||
-      filters.priorities.length > 0
+      filters.priorities.length > 0 ||
+      filters.completionFilter !== 'all'
     );
   }, [filters]);
 
@@ -206,6 +225,7 @@ export function useTaskFilter(boardId?: string) {
     count += filters.labelIds.length;
     if (filters.dueDateFilter !== 'all') count++;
     count += filters.priorities.length;
+    if (filters.completionFilter !== 'all') count++;
     return count;
   }, [filters]);
 
@@ -215,12 +235,14 @@ export function useTaskFilter(boardId?: string) {
     toggleLabelFilter,
     setDueDateFilter,
     togglePriorityFilter,
+    setCompletionFilter,
     clearFilters,
     clearSearch,
     removeLabelFilter,
     clearDueDateFilter,
     removePriorityFilter,
     clearPriorityFilters,
+    clearCompletionFilter,
     filterTasks,
     hasActiveFilters,
     activeFilterCount,

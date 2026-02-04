@@ -1,4 +1,5 @@
 import React from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Task, Label, PRIORITY_CONFIG } from '../../types';
@@ -18,6 +19,7 @@ export function CalendarTaskItem({
 }: CalendarTaskItemProps) {
   const priority = task.priority || 'none';
   const priorityConfig = PRIORITY_CONFIG[priority];
+  const isCompleted = task.completed;
   
   // Get first label color for indicator
   const taskLabels = labels.filter(l => task.labelIds?.includes(l.id));
@@ -42,20 +44,28 @@ export function CalendarTaskItem({
           w-full text-left px-1.5 py-0.5 rounded text-xs truncate
           hover:bg-accent transition-colors cursor-pointer
           flex items-center gap-1
-          ${priority !== 'none' ? priorityConfig.bgClass : 'bg-muted/50'}
+          ${isCompleted ? 'opacity-60' : ''}
+          ${priority !== 'none' && !isCompleted ? priorityConfig.bgClass : 'bg-muted/50'}
         `}
         title={task.title}
       >
-        {/* Priority/Label indicator */}
-        <span 
-          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
-          style={{ 
-            backgroundColor: priority !== 'none' 
-              ? priorityConfig.color 
-              : firstLabelColor || '#6b7280' 
-          }}
-        />
-        <span className="truncate">{task.title}</span>
+        {/* Completed indicator */}
+        {isCompleted ? (
+          <CheckCircle2 className="w-3 h-3 text-green-500 flex-shrink-0" />
+        ) : (
+          /* Priority/Label indicator */
+          <span 
+            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+            style={{ 
+              backgroundColor: priority !== 'none' 
+                ? priorityConfig.color 
+                : firstLabelColor || '#6b7280' 
+            }}
+          />
+        )}
+        <span className={`truncate ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+          {task.title}
+        </span>
         {hasSubtasks && (
           <span className="text-[10px] text-muted-foreground ml-auto flex-shrink-0">
             {completedSubtasks}/{subtasks.length}
@@ -72,21 +82,26 @@ export function CalendarTaskItem({
       className={`
         w-full text-left p-2 rounded-md border text-sm
         hover:bg-accent transition-colors cursor-pointer
-        ${priority !== 'none' ? `${priorityConfig.borderClass} border-l-4` : ''}
+        ${isCompleted ? 'opacity-60' : ''}
+        ${priority !== 'none' && !isCompleted ? `${priorityConfig.borderClass} border-l-4` : ''}
       `}
     >
       <div className="flex items-start gap-2">
-        {/* Priority indicator */}
-        {priority !== 'none' && (
+        {/* Completed indicator or Priority indicator */}
+        {isCompleted ? (
+          <CheckCircle2 className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+        ) : priority !== 'none' ? (
           <span 
             className="w-2 h-2 rounded-full mt-1.5 flex-shrink-0"
             style={{ backgroundColor: priorityConfig.color }}
           />
-        )}
+        ) : null}
         
         <div className="flex-1 min-w-0">
           {/* Title */}
-          <p className="font-medium truncate">{task.title}</p>
+          <p className={`font-medium truncate ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+            {task.title}
+          </p>
           
           {/* Labels */}
           {taskLabels.length > 0 && (
@@ -94,7 +109,7 @@ export function CalendarTaskItem({
               {taskLabels.slice(0, 2).map(label => (
                 <span
                   key={label.id}
-                  className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
+                  className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${isCompleted ? 'opacity-60' : ''}`}
                   style={{ 
                     backgroundColor: `${label.color}20`, 
                     color: label.color 
@@ -116,7 +131,7 @@ export function CalendarTaskItem({
             <div className="flex items-center gap-1 mt-1.5">
               <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-primary transition-all"
+                  className={`h-full transition-all ${isCompleted ? 'bg-green-500' : 'bg-primary'}`}
                   style={{ width: `${(completedSubtasks / subtasks.length) * 100}%` }}
                 />
               </div>

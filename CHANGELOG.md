@@ -6,6 +6,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.2.0] - 2026-02-04
+
+### Added
+- **Task Completion** - Mark tasks as complete/incomplete
+  - Checkbox on task cards for quick completion toggle
+  - Visual indicators: strikethrough title, muted colors, green checkmark icon
+  - Completed timestamp tracking
+- **Done Columns** - Mark columns as "Done" columns
+  - Tasks automatically marked complete when moved to done column
+  - Tasks automatically unmarked when moved out of done column
+  - Default "Done" column in new boards
+- **Completion Filter** - Filter tasks by completion status
+  - Filter dropdown: All / Incomplete / Completed
+  - Active filter badge in filter bar
+- **Completion in All Views**
+  - Kanban: Checkbox, strikethrough, muted styling
+  - Calendar (Month/Week): Green checkmark, strikethrough, opacity
+  - Agenda: Green checkmark, "Done" badge, sorted to bottom
+  - Task Detail Dialog: Complete/Incomplete button with status badge
+
+### Changed
+- IndexedDB schema updated to version 8 (added completion fields)
+- Completed tasks no longer appear in "Overdue" section
+- Due date warnings hidden for completed tasks
+
+
 ## [2.1.2] - 2026-02-04
 
 ### Fixed

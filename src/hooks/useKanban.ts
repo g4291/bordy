@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Board, Column, Task, Label, Subtask, Comment, Attachment, KanbanData, BoardTemplate, TemplateColumn, TemplateLabel, TemplateTask } from '../types';
+import { Board, Column, Task, Label, Subtask, Comment, Attachment, KanbanData, BoardTemplate, TemplateLabel, TemplateTask } from '../types';
 import * as db from '../lib/db';
 
 export function useKanban() {
@@ -82,6 +82,8 @@ export function useKanban() {
         boardId: board.id,
         order: i,
         color: template ? templateColumns[i].color : undefined,
+        // Use isCompleteColumn from template, or mark last default column (Done) as complete
+        isCompleteColumn: template ? templateColumns[i].isCompleteColumn : (i === 2 ? true : undefined),
       };
       await db.saveColumn(column);
       createdColumns.push(column);
@@ -122,6 +124,7 @@ export function useKanban() {
             attachments: [],
             labelIds: taskLabelIds,
             priority: tTask.priority || 'none',
+            completed: false,
             createdAt: now,
             updatedAt: now,
           };
@@ -170,7 +173,7 @@ export function useKanban() {
     setTasks(prev => new Map(prev).set(column.id, []));
   }, [currentBoard, columns.length]);
 
-  const updateColumn = useCallback(async (id: string, updates: { title?: string; color?: string }) => {
+  const updateColumn = useCallback(async (id: string, updates: { title?: string; color?: string; isCompleteColumn?: boolean }) => {
     const column = columns.find(c => c.id === id);
     if (!column) return;
 
@@ -179,6 +182,8 @@ export function useKanban() {
       ...updates,
       // Handle color: if empty string, remove color; if undefined, keep existing
       color: updates.color === '' ? undefined : (updates.color ?? column.color),
+      // Handle isCompleteColumn
+      isCompleteColumn: updates.isCompleteColumn ?? column.isCompleteColumn,
     };
     await db.saveColumn(updated);
     setColumns(prev => prev.map(c => c.id === id ? updated : c));
@@ -206,7 +211,11 @@ export function useKanban() {
   // Task operations
   const createTask = useCallback(async (columnId: string, title: string, description?: string, dueDate?: number) => {
     const columnTasks = tasks.get(columnId) || [];
+    const column = columns.find(c => c.id === columnId);
     const now = Date.now();
+    
+    // If creating in a complete column, mark as completed
+    const isCompleteColumn = column?.isCompleteColumn || false;
     
     const task: Task = {
       id: uuidv4(),
@@ -220,6 +229,8 @@ export function useKanban() {
       attachments: [],
       priority: 'none',
       dueDate,
+      completed: isCompleteColumn,
+      completedAt: isCompleteColumn ? now : undefined,
       createdAt: now,
       updatedAt: now,
     };
@@ -229,14 +240,25 @@ export function useKanban() {
       next.set(columnId, [...(next.get(columnId) || []), task]);
       return next;
     });
-  }, [tasks]);
+  }, [tasks, columns]);
 
-  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => {
+  const updateTask = useCallback(async (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => {
     const entries = Array.from(tasks.entries());
     for (const [columnId, columnTasks] of entries) {
       const task = columnTasks.find((t: Task) => t.id === id);
       if (task) {
-        const updated: Task = { ...task, ...updates, updatedAt: Date.now() };
+        // Handle completed state changes
+        let completedAt = updates.completedAt;
+        if (updates.completed !== undefined && updates.completed !== task.completed) {
+          completedAt = updates.completed ? Date.now() : undefined;
+        }
+        
+        const updated: Task = { 
+          ...task, 
+          ...updates, 
+          completedAt,
+          updatedAt: Date.now() 
+        };
         await db.saveTask(updated);
         setTasks(prev => {
           const next = new Map(prev);
@@ -273,10 +295,30 @@ export function useKanban() {
     const task = sourceTasks.find(t => t.id === taskId);
     if (!task) return;
 
+    // Check if target column is a complete column
+    const targetColumn = columns.find(c => c.id === targetColumnId);
+    const sourceColumn = columns.find(c => c.id === sourceColumnId);
+    const isMovingToCompleteColumn = targetColumn?.isCompleteColumn && !sourceColumn?.isCompleteColumn;
+    const isMovingFromCompleteColumn = sourceColumn?.isCompleteColumn && !targetColumn?.isCompleteColumn;
+    
+    // Auto-complete/uncomplete based on column
+    let completed = task.completed;
+    let completedAt = task.completedAt;
+    
+    if (isMovingToCompleteColumn && !task.completed) {
+      completed = true;
+      completedAt = Date.now();
+    } else if (isMovingFromCompleteColumn && task.completed) {
+      completed = false;
+      completedAt = undefined;
+    }
+
     const updatedTask: Task = { 
       ...task, 
       columnId: targetColumnId, 
       order: newIndex, 
+      completed,
+      completedAt,
       updatedAt: Date.now() 
     };
 
@@ -316,6 +358,30 @@ export function useKanban() {
       }
       return next;
     });
+  }, [tasks, columns]);
+
+  // Toggle task completion
+  const toggleTaskComplete = useCallback(async (taskId: string) => {
+    const entries = Array.from(tasks.entries());
+    for (const [columnId, columnTasks] of entries) {
+      const task = columnTasks.find((t: Task) => t.id === taskId);
+      if (task) {
+        const completed = !task.completed;
+        const updated: Task = { 
+          ...task, 
+          completed,
+          completedAt: completed ? Date.now() : undefined,
+          updatedAt: Date.now() 
+        };
+        await db.saveTask(updated);
+        setTasks(prev => {
+          const next = new Map(prev);
+          next.set(columnId, columnTasks.map((t: Task) => t.id === taskId ? updated : t));
+          return next;
+        });
+        return;
+      }
+    }
   }, [tasks]);
 
   // Label operations
@@ -670,6 +736,7 @@ export function useKanban() {
     updateTask,
     deleteTask,
     moveTask,
+    toggleTaskComplete,
     
     // Label operations
     createLabel,

@@ -37,11 +37,11 @@ interface KanbanBoardProps {
   tasks: Map<string, Task[]>;
   labels: Label[];
   onCreateColumn: (title: string) => void;
-  onUpdateColumn: (id: string, updates: { title?: string; color?: string }) => void;
+  onUpdateColumn: (id: string, updates: { title?: string; color?: string; isCompleteColumn?: boolean }) => void;
   onDeleteColumn: (id: string) => void;
   onReorderColumns: (columns: Column[]) => void;
   onCreateTask: (columnId: string, title: string, description?: string) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newIndex: number) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
@@ -55,6 +55,8 @@ interface KanbanBoardProps {
   // Attachment handlers
   onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
   onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
+  // Completion handler
+  onToggleTaskComplete?: (taskId: string) => void;
   // Filter props
   filterTasks: (tasks: Task[]) => Task[];
   hasActiveFilters: boolean;
@@ -91,6 +93,7 @@ export function KanbanBoard({
   onClearFilters,
   onAddAttachment,
   onDeleteAttachment,
+  onToggleTaskComplete,
   isNewTaskDialogOpen,
   setIsNewTaskDialogOpen,
   onDialogOpenChange,
@@ -342,6 +345,7 @@ export function KanbanBoard({
                 hasActiveFilters={hasActiveFilters}
                 onAddAttachment={onAddAttachment}
                 onDeleteAttachment={onDeleteAttachment}
+                onToggleTaskComplete={onToggleTaskComplete}
               />
             ))}
 

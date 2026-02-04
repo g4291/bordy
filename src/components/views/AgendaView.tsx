@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef } from 'react';
-import { ChevronDown, ChevronRight, AlertTriangle, Calendar, CalendarClock, Clock, CalendarX } from 'lucide-react';
+import { ChevronDown, ChevronRight, AlertTriangle, Calendar, CalendarClock, Clock, CalendarX, CheckCircle2 } from 'lucide-react';
 import { Task, Label, PRIORITY_CONFIG } from '../../types';
 import { Button } from '../ui/button';
 import { LabelBadge } from '../LabelBadge';
@@ -10,8 +10,6 @@ import {
   isTomorrow,
   isThisWeek,
   isPast,
-  getStartOfDay,
-  formatAgendaDate,
   formatRelativeDate,
 } from '../../lib/calendar-utils';
 
@@ -44,8 +42,6 @@ export function AgendaView({ tasks, labels, onTaskClick }: AgendaViewProps) {
     const later: Task[] = [];
     const noDate: Task[] = [];
 
-    const todayStart = getStartOfDay(new Date());
-
     tasks.forEach(task => {
       if (!task.dueDate) {
         noDate.push(task);
@@ -54,7 +50,8 @@ export function AgendaView({ tasks, labels, onTaskClick }: AgendaViewProps) {
 
       const dueDate = new Date(task.dueDate);
 
-      if (isPast(dueDate) && !isToday(dueDate)) {
+      // Completed tasks are never overdue
+      if (isPast(dueDate) && !isToday(dueDate) && !task.completed) {
         overdue.push(task);
       } else if (isToday(dueDate)) {
         today.push(task);
@@ -68,7 +65,12 @@ export function AgendaView({ tasks, labels, onTaskClick }: AgendaViewProps) {
     });
 
     // Sort tasks within each section by due date, then by priority
+    // Completed tasks go to the bottom of each section
     const sortTasks = (a: Task, b: Task) => {
+      // Completed tasks go to the bottom
+      if (a.completed !== b.completed) {
+        return a.completed ? 1 : -1;
+      }
       // First by due date
       if (a.dueDate && b.dueDate) {
         const dateDiff = a.dueDate - b.dueDate;
@@ -276,6 +278,7 @@ function AgendaTaskItem({ task, labels, onClick, showDate = false }: AgendaTaskI
   const priorityConfig = PRIORITY_CONFIG[priority];
   const subtasks = task.subtasks || [];
   const hasSubtasks = subtasks.length > 0;
+  const isCompleted = task.completed;
 
   return (
     <button
@@ -283,26 +286,31 @@ function AgendaTaskItem({ task, labels, onClick, showDate = false }: AgendaTaskI
       className={`
         w-full text-left p-3 hover:bg-accent/50 transition-colors
         flex items-start gap-3
-        ${priority !== 'none' ? priorityConfig.borderClass : ''}
+        ${isCompleted ? 'opacity-60' : ''}
+        ${priority !== 'none' && !isCompleted ? priorityConfig.borderClass : ''}
       `}
     >
-      {/* Priority indicator */}
-      {priority !== 'none' && (
+      {/* Completed indicator or Priority indicator */}
+      {isCompleted ? (
+        <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+      ) : priority !== 'none' ? (
         <span 
           className="w-2 h-2 rounded-full mt-2 flex-shrink-0"
           style={{ backgroundColor: priorityConfig.color }}
         />
-      )}
+      ) : null}
 
       {/* Main content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <p className="font-medium">{task.title}</p>
+            <p className={`font-medium ${isCompleted ? 'line-through text-muted-foreground' : ''}`}>
+              {task.title}
+            </p>
             
             {/* Labels */}
             {taskLabels.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-1">
+              <div className={`flex flex-wrap gap-1 mt-1 ${isCompleted ? 'opacity-60' : ''}`}>
                 {taskLabels.map(label => (
                   <LabelBadge key={label.id} label={label} size="sm" />
                 ))}
@@ -311,7 +319,7 @@ function AgendaTaskItem({ task, labels, onClick, showDate = false }: AgendaTaskI
             
             {/* Description preview */}
             {task.description && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+              <p className={`text-sm text-muted-foreground mt-1 line-clamp-1 ${isCompleted ? 'line-through' : ''}`}>
                 {task.description}
               </p>
             )}
@@ -319,15 +327,22 @@ function AgendaTaskItem({ task, labels, onClick, showDate = false }: AgendaTaskI
 
           {/* Right side info */}
           <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            {/* Completed badge */}
+            {isCompleted && (
+              <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                Done
+              </span>
+            )}
+            
             {/* Due date */}
-            {showDate && task.dueDate && (
+            {showDate && task.dueDate && !isCompleted && (
               <span className="text-xs text-muted-foreground">
                 {formatRelativeDate(new Date(task.dueDate))}
               </span>
             )}
             
             {/* Priority badge */}
-            {priority !== 'none' && (
+            {priority !== 'none' && !isCompleted && (
               <PriorityBadge priority={priority} size="sm" />
             )}
           </div>

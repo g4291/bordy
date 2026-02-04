@@ -45,6 +45,8 @@ export function useTemplates() {
     // Convert columns to template format
     const templateColumns = columns.map(col => ({
       title: col.title,
+      color: col.color,
+      isCompleteColumn: col.isCompleteColumn,
     }));
 
     // Convert labels to template format

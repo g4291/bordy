@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil, Trash2, AlertTriangle, Calendar, Clock } from 'lucide-react';
+import { Pencil, Trash2, AlertTriangle, Calendar, Clock, Check, CheckCircle2 } from 'lucide-react';
 import { Task, Label, TaskPriority, Comment, Attachment } from '../../types';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -28,7 +28,7 @@ interface TaskDetailDialogProps {
   labels: Label[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => void;
   onDelete: (id: string) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
@@ -39,6 +39,7 @@ interface TaskDetailDialogProps {
   onDeleteComment: (taskId: string, commentId: string) => Promise<void>;
   onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
   onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
+  onToggleComplete?: (taskId: string) => void;
 }
 
 export function TaskDetailDialog({
@@ -57,6 +58,7 @@ export function TaskDetailDialog({
   onDeleteComment,
   onAddAttachment,
   onDeleteAttachment,
+  onToggleComplete,
 }: TaskDetailDialogProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -137,9 +139,22 @@ export function TaskDetailDialog({
     await onDeleteAttachment(task.id, attachmentId);
   };
 
-  // Helper functions for due date
+  const handleToggleComplete = () => {
+    if (onToggleComplete) {
+      onToggleComplete(task.id);
+    } else {
+      onUpdate(task.id, {
+        completed: !task.completed,
+        completedAt: !task.completed ? Date.now() : undefined,
+      });
+    }
+  };
+
+  // Helper functions for due date - don't show urgency for completed tasks
   const getDueDateStatus = (dueDate?: number): 'overdue' | 'today' | 'tomorrow' | 'soon' | 'ok' | null => {
     if (!dueDate) return null;
+    if (task.completed) return 'ok';
+    
     const now = new Date();
     const due = new Date(dueDate);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -201,14 +216,45 @@ export function TaskDetailDialog({
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-start justify-between gap-4">
-              <DialogTitle className="text-xl">{task.title}</DialogTitle>
+              <div className="flex items-start gap-3">
+                {/* Complete checkbox in header */}
+                <button
+                  onClick={handleToggleComplete}
+                  className={`mt-1 h-6 w-6 rounded-full border-2 flex items-center justify-center cursor-pointer transition-colors flex-shrink-0 ${
+                    task.completed
+                      ? 'bg-green-500 border-green-500 text-white'
+                      : 'border-muted-foreground/50 hover:border-green-500 hover:bg-green-500/10'
+                  }`}
+                  data-testid="task-detail-complete-checkbox"
+                >
+                  {task.completed && <Check className="h-4 w-4" />}
+                </button>
+                <div>
+                  <DialogTitle className={`text-xl ${task.completed ? 'line-through text-muted-foreground' : ''}`}>
+                    {task.title}
+                  </DialogTitle>
+                  {task.completed && task.completedAt && (
+                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                      Completed {formatFullDate(task.completedAt)}
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className={`space-y-4 py-2 ${task.completed ? 'opacity-75' : ''}`}>
+            {/* Completed badge */}
+            {task.completed && (
+              <div className="inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-md bg-green-100 dark:bg-green-500/20 text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>Completed</span>
+              </div>
+            )}
+
             {/* Priority and Labels row */}
             <div className="flex flex-wrap items-center gap-2">
-              {priority !== 'none' && (
+              {priority !== 'none' && !task.completed && (
                 <PriorityBadge priority={priority} size="md" />
               )}
               {taskLabels.map((label) => (
@@ -219,11 +265,17 @@ export function TaskDetailDialog({
             {/* Due date */}
             {task.dueDate && dueDateStatus && (
               <div
-                className={`inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${dueDateStyles[dueDateStatus].badge}`}
+                className={`inline-flex items-center gap-2 text-sm px-3 py-1.5 rounded-md ${
+                  task.completed ? 'text-muted-foreground bg-muted' : dueDateStyles[dueDateStatus].badge
+                }`}
               >
-                {React.createElement(dueDateStyles[dueDateStatus].icon, {
-                  className: 'h-4 w-4',
-                })}
+                {task.completed ? (
+                  <Check className="h-4 w-4" />
+                ) : (
+                  React.createElement(dueDateStyles[dueDateStatus].icon, {
+                    className: 'h-4 w-4',
+                  })
+                )}
                 <span>{formatFullDate(task.dueDate)}</span>
               </div>
             )}
@@ -310,12 +362,29 @@ export function TaskDetailDialog({
             >
               <Trash2 className="h-4 w-4" />
             </Button>
+            <Button
+              variant={task.completed ? 'outline' : 'default'}
+              onClick={handleToggleComplete}
+              className={task.completed ? '' : 'bg-green-600 hover:bg-green-700'}
+            >
+              {task.completed ? (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Mark Incomplete
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Mark Complete
+                </>
+              )}
+            </Button>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>
             <Button onClick={handleOpenEdit}>
               <Pencil className="h-4 w-4 mr-2" />
-              Edit Task
+              Edit
             </Button>
           </DialogFooter>
         </DialogContent>

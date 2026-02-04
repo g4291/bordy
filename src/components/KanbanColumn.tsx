@@ -3,12 +3,13 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { useDroppable } from '@dnd-kit/core';
-import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle, Palette } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { Column, Task, Label, Comment, Attachment } from '../types';
 import { TaskCard } from './TaskCard';
 import { ColorPicker } from './ColorPicker';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
+import { Switch } from './ui/switch';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
 import {
   DropdownMenu,
@@ -31,10 +32,10 @@ interface KanbanColumnProps {
   tasks: Task[];
   allTasksCount?: number;  // Total tasks in column (before filtering)
   labels: Label[];
-  onUpdateColumn: (id: string, updates: { title?: string; color?: string }) => void;
+  onUpdateColumn: (id: string, updates: { title?: string; color?: string; isCompleteColumn?: boolean }) => void;
   onDeleteColumn: (id: string) => void;
   onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
-  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => void;
   onDeleteTask: (id: string) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
@@ -48,6 +49,8 @@ interface KanbanColumnProps {
   // Attachment handlers
   onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
   onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
+  // Completion handler
+  onToggleTaskComplete?: (taskId: string) => void;
 }
 
 export function KanbanColumn({
@@ -70,12 +73,14 @@ export function KanbanColumn({
   onDeleteComment,
   onAddAttachment,
   onDeleteAttachment,
+  onToggleTaskComplete,
 }: KanbanColumnProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const [editTitle, setEditTitle] = useState(column.title);
   const [editColor, setEditColor] = useState(column.color || '');
+  const [editIsCompleteColumn, setEditIsCompleteColumn] = useState(column.isCompleteColumn || false);
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState<string>('');
@@ -107,6 +112,7 @@ export function KanbanColumn({
   const handleOpenEdit = () => {
     setEditTitle(column.title);
     setEditColor(column.color || '');
+    setEditIsCompleteColumn(column.isCompleteColumn || false);
     setIsEditing(true);
   };
 
@@ -114,7 +120,8 @@ export function KanbanColumn({
     if (editTitle.trim()) {
       onUpdateColumn(column.id, { 
         title: editTitle.trim(), 
-        color: editColor || undefined 
+        color: editColor || undefined,
+        isCompleteColumn: editIsCompleteColumn,
       });
       setIsEditing(false);
     }
@@ -171,6 +178,7 @@ export function KanbanColumn({
       }`}
       data-testid="column"
       data-column-id={column.id}
+      data-is-complete-column={column.isCompleteColumn || false}
     >
       <CardHeader className="p-3 pb-2">
         <div className="flex items-center justify-between">
@@ -188,6 +196,12 @@ export function KanbanColumn({
                 <span 
                   className="w-2 h-2 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: column.color }}
+                />
+              )}
+              {column.isCompleteColumn && (
+                <CheckCircle2 
+                  className="h-4 w-4 text-green-500 flex-shrink-0" 
+                  data-testid="column-complete-indicator"
                 />
               )}
               <span data-testid="column-title">{column.title}</span>
@@ -251,6 +265,7 @@ export function KanbanColumn({
                 onDeleteComment={onDeleteComment}
                 onAddAttachment={onAddAttachment}
                 onDeleteAttachment={onDeleteAttachment}
+                onToggleComplete={onToggleTaskComplete}
               />
             ))}
           </SortableContext>
@@ -333,6 +348,24 @@ export function KanbanColumn({
               onChange={setEditColor}
               label="Column Color"
             />
+            
+            {/* Complete Column toggle */}
+            <div className="flex items-center justify-between py-2">
+              <div className="space-y-0.5">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  Done Column
+                </label>
+                <p className="text-xs text-muted-foreground">
+                  Tasks moved here will be automatically marked as complete
+                </p>
+              </div>
+              <Switch
+                checked={editIsCompleteColumn}
+                onCheckedChange={setEditIsCompleteColumn}
+                data-testid="edit-column-complete-toggle"
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditing(false)}>

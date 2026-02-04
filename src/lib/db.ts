@@ -30,7 +30,7 @@ interface KanbanDB extends DBSchema {
 }
 
 const DB_NAME = 'kanban-db';
-const DB_VERSION = 7;
+const DB_VERSION = 8;
 
 let dbInstance: IDBPDatabase<KanbanDB> | null = null;
 
@@ -162,6 +162,8 @@ export async function getTasksByColumn(columnId: string): Promise<Task[]> {
       comments: task.comments || [],
       attachments: task.attachments || [],
       priority: (task.priority || 'none') as TaskPriority,
+      completed: task.completed ?? false,
+      completedAt: task.completedAt,
     }))
     .sort((a, b) => a.order - b.order);
 }
@@ -176,6 +178,8 @@ export async function saveTask(task: Task): Promise<void> {
     comments: task.comments || [],
     attachments: task.attachments || [],
     priority: (task.priority || 'none') as TaskPriority,
+    completed: task.completed ?? false,
+    completedAt: task.completedAt,
   });
 }
 
@@ -215,7 +219,7 @@ export async function exportData(): Promise<KanbanData> {
     tasks,
     labels,
     exportedAt: Date.now(),
-    version: '2.1.0',
+    version: '2.2.0',
   };
 }
 
@@ -248,6 +252,8 @@ export async function importData(data: KanbanData): Promise<void> {
       comments: task.comments || [],
       attachments: task.attachments || [],
       priority: (task.priority || 'none') as TaskPriority,
+      completed: task.completed ?? false,
+      completedAt: task.completedAt,
     });
   }
   

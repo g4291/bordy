@@ -10,7 +10,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
     columns: [
       { title: 'To Do' },
       { title: 'In Progress' },
-      { title: 'Done' },
+      { title: 'Done', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [],
     tasks: [],
@@ -27,7 +27,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'To Do', color: '#3b82f6' },
       { title: 'In Progress', color: '#eab308' },
       { title: 'Review', color: '#8b5cf6' },
-      { title: 'Done', color: '#22c55e' },
+      { title: 'Done', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Bug', color: '#ef4444' },
@@ -122,7 +122,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'To Do', color: '#3b82f6' },
       { title: 'In Progress', color: '#eab308' },
       { title: 'Review', color: '#8b5cf6' },
-      { title: 'Done', color: '#22c55e' },
+      { title: 'Done', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Bug', color: '#ef4444' },
@@ -146,7 +146,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'In Development', color: '#3b82f6' },
       { title: 'Code Review', color: '#8b5cf6' },
       { title: 'Testing', color: '#f97316' },
-      { title: 'Done', color: '#22c55e' },
+      { title: 'Done', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'User Story', color: '#3b82f6' },
@@ -170,7 +170,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'Planning', color: '#3b82f6' },
       { title: 'In Progress', color: '#eab308' },
       { title: 'Review', color: '#8b5cf6' },
-      { title: 'Published', color: '#22c55e' },
+      { title: 'Published', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Social Media', color: '#3b82f6' },
@@ -194,7 +194,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'Writing', color: '#3b82f6' },
       { title: 'Editing', color: '#f97316' },
       { title: 'Scheduled', color: '#8b5cf6' },
-      { title: 'Published', color: '#22c55e' },
+      { title: 'Published', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Blog Post', color: '#3b82f6' },
@@ -218,7 +218,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'Screening', color: '#3b82f6' },
       { title: 'Interview', color: '#eab308' },
       { title: 'Offer', color: '#8b5cf6' },
-      { title: 'Hired', color: '#22c55e' },
+      { title: 'Hired', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Engineering', color: '#3b82f6' },
@@ -242,7 +242,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'Today', color: '#ef4444' },
       { title: 'This Week', color: '#eab308' },
       { title: 'Someday', color: '#3b82f6' },
-      { title: 'Done', color: '#22c55e' },
+      { title: 'Done', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Work', color: '#3b82f6' },
@@ -266,7 +266,7 @@ export const BUILT_IN_TEMPLATES: BoardTemplate[] = [
       { title: 'Confirmed', color: '#f97316' },
       { title: 'In Progress', color: '#eab308' },
       { title: 'Testing', color: '#8b5cf6' },
-      { title: 'Resolved', color: '#22c55e' },
+      { title: 'Resolved', color: '#22c55e', isCompleteColumn: true },
     ],
     labels: [
       { name: 'Critical', color: '#ef4444' },

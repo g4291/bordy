@@ -1,5 +1,5 @@
 import React from 'react';
-import { Filter, Calendar, Tag, Check, Flag, ArrowDown, Minus, ArrowUp, AlertTriangle } from 'lucide-react';
+import { Filter, Calendar, Tag, Check, Flag, ArrowDown, Minus, ArrowUp, AlertTriangle, CheckCircle2, Circle } from 'lucide-react';
 import { Button } from './ui/button';
 import {
   DropdownMenu,
@@ -9,16 +9,18 @@ import {
   DropdownMenuLabel,
 } from './ui/dropdown-menu';
 import { Label, TaskPriority, PRIORITY_CONFIG } from '../types';
-import { DueDateFilter } from '../hooks/useTaskFilter';
+import { DueDateFilter, CompletionFilter } from '../hooks/useTaskFilter';
 
 interface FilterDropdownProps {
   labels: Label[];
   selectedLabelIds: string[];
   dueDateFilter: DueDateFilter;
   selectedPriorities: TaskPriority[];
+  completionFilter: CompletionFilter;
   onToggleLabelFilter: (labelId: string) => void;
   onDueDateFilterChange: (filter: DueDateFilter) => void;
   onTogglePriorityFilter: (priority: TaskPriority) => void;
+  onCompletionFilterChange: (filter: CompletionFilter) => void;
   activeFilterCount: number;
 }
 
@@ -28,6 +30,12 @@ const dueDateOptions: { value: DueDateFilter; label: string; description?: strin
   { value: 'today', label: 'Today', description: 'Due today' },
   { value: 'this-week', label: 'This week', description: 'Due this week' },
   { value: 'no-date', label: 'No date', description: 'Without due date' },
+];
+
+const completionOptions: { value: CompletionFilter; label: string; icon: React.ElementType }[] = [
+  { value: 'all', label: 'All tasks', icon: Circle },
+  { value: 'incomplete', label: 'Incomplete', icon: Circle },
+  { value: 'completed', label: 'Completed', icon: CheckCircle2 },
 ];
 
 const priorityIcons = {
@@ -45,9 +53,11 @@ export function FilterDropdown({
   selectedLabelIds,
   dueDateFilter,
   selectedPriorities,
+  completionFilter,
   onToggleLabelFilter,
   onDueDateFilterChange,
   onTogglePriorityFilter,
+  onCompletionFilterChange,
   activeFilterCount,
 }: FilterDropdownProps) {
   return (
@@ -64,6 +74,40 @@ export function FilterDropdown({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">
+        {/* Completion Status Section */}
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <CheckCircle2 className="h-4 w-4" />
+          Status
+        </DropdownMenuLabel>
+        <div className="px-2 pb-2">
+          {completionOptions.map((option) => {
+            const Icon = option.icon;
+            const isSelected = completionFilter === option.value;
+
+            return (
+              <button
+                key={option.value}
+                onClick={() => onCompletionFilterChange(option.value)}
+                className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors ${
+                  isSelected ? 'bg-primary/10 text-primary' : 'hover:bg-accent'
+                }`}
+              >
+                <Icon 
+                  className={`h-4 w-4 flex-shrink-0 ${
+                    option.value === 'completed' ? 'text-green-500' : ''
+                  }`}
+                />
+                <span className="flex-1 text-left">{option.label}</span>
+                {isSelected && (
+                  <Check className="h-4 w-4 flex-shrink-0" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <DropdownMenuSeparator />
+
         {/* Priority Section */}
         <DropdownMenuLabel className="flex items-center gap-2">
           <Flag className="h-4 w-4" />

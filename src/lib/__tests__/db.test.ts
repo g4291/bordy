@@ -291,7 +291,7 @@ describe('Database Operations', () => {
         expect(data.columns).toHaveLength(1);
         expect(data.tasks).toHaveLength(1);
         expect(data.labels).toHaveLength(1);
-        expect(data.version).toBe('2.1.0');
+        expect(data.version).toBe('2.2.0');
         expect(data.exportedAt).toBeDefined();
       });
     });

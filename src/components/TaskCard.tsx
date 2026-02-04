@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock, Paperclip } from 'lucide-react';
+import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock, Paperclip, Check } from 'lucide-react';
 import { Task, Label, Comment, Attachment, PRIORITY_CONFIG } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
+import { Checkbox } from './ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +20,7 @@ import { TaskDetailDialog } from './views/TaskDetailDialog';
 interface TaskCardProps {
   task: Task;
   labels: Label[];
-  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority'>>) => void;
+  onUpdate: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => void;
   onDelete: (id: string) => void;
   onAddSubtask: (taskId: string, title: string) => Promise<any>;
   onToggleSubtask: (taskId: string, subtaskId: string) => Promise<void>;
@@ -32,6 +33,8 @@ interface TaskCardProps {
   // Attachment handlers
   onAddAttachment: (taskId: string, attachment: Attachment) => Promise<void>;
   onDeleteAttachment: (taskId: string, attachmentId: string) => Promise<void>;
+  // Completion handler
+  onToggleComplete?: (taskId: string) => void;
 }
 
 export function TaskCard({ 
@@ -48,6 +51,7 @@ export function TaskCard({
   onDeleteComment,
   onAddAttachment,
   onDeleteAttachment,
+  onToggleComplete,
 }: TaskCardProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -67,17 +71,32 @@ export function TaskCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open if clicking on drag handle or dropdown
+    // Don't open if clicking on drag handle, dropdown, or checkbox
     const target = e.target as HTMLElement;
-    if (target.closest('[data-drag-handle]') || target.closest('[data-dropdown]')) {
+    if (target.closest('[data-drag-handle]') || target.closest('[data-dropdown]') || target.closest('[data-complete-checkbox]')) {
       return;
     }
     setIsDetailOpen(true);
   };
 
-  // Helper function for due date status
+  const handleToggleComplete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onToggleComplete) {
+      onToggleComplete(task.id);
+    } else {
+      // Fallback: update via onUpdate
+      onUpdate(task.id, {
+        completed: !task.completed,
+        completedAt: !task.completed ? Date.now() : undefined,
+      });
+    }
+  };
+
+  // Helper function for due date status - don't show urgent status for completed tasks
   const getDueDateStatus = (dueDate?: number): 'overdue' | 'today' | 'tomorrow' | 'soon' | 'ok' | null => {
     if (!dueDate) return null;
+    if (task.completed) return 'ok'; // Completed tasks don't show urgency
+    
     const now = new Date();
     const due = new Date(dueDate);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -93,6 +112,12 @@ export function TaskCard({
   };
 
   const formatDueDate = (dueDate: number, status: string): string => {
+    if (task.completed) {
+      // For completed tasks, just show the date
+      const date = new Date(dueDate);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+    
     if (status === 'overdue') {
       const now = new Date();
       const due = new Date(dueDate);
@@ -149,13 +174,17 @@ export function TaskCard({
   const priority = task.priority || 'none';
   const priorityConfig = PRIORITY_CONFIG[priority];
 
-  // Card border style - priority border on left, overdue/today styling takes precedence for right border
-  const cardClassName = `mb-2 cursor-pointer bg-card hover:bg-accent/50 transition-colors ${
-    priorityConfig.borderClass
+  // Card styling - completed tasks have muted appearance, no urgency border
+  const cardClassName = `mb-2 cursor-pointer transition-colors ${
+    task.completed 
+      ? 'bg-muted/50 hover:bg-muted/70 opacity-75' 
+      : 'bg-card hover:bg-accent/50'
   } ${
-    dueDateStatus === 'overdue' 
+    task.completed ? '' : priorityConfig.borderClass
+  } ${
+    !task.completed && dueDateStatus === 'overdue' 
       ? 'border-t border-r border-b border-red-500 dark:border-red-500 shadow-sm shadow-red-500/20' 
-      : dueDateStatus === 'today'
+      : !task.completed && dueDateStatus === 'today'
       ? 'border-t border-r border-b border-orange-400 dark:border-orange-500'
       : ''
   }`;
@@ -169,11 +198,12 @@ export function TaskCard({
         onClick={handleCardClick}
         data-testid="task-card"
         data-task-id={task.id}
+        data-completed={task.completed}
       >
         <CardContent className="p-3">
           {/* Labels row */}
           {taskLabels.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-2" data-testid="task-labels">
+            <div className={`flex flex-wrap gap-1 mb-2 ${task.completed ? 'opacity-60' : ''}`} data-testid="task-labels">
               {taskLabels.map((label) => (
                 <LabelBadge key={label.id} label={label} size="sm" />
               ))}
@@ -181,6 +211,25 @@ export function TaskCard({
           )}
 
           <div className="flex items-start gap-2">
+            {/* Complete checkbox */}
+            <div 
+              data-complete-checkbox
+              className="mt-0.5 flex-shrink-0"
+              onClick={handleToggleComplete}
+            >
+              <div
+                className={`h-4 w-4 rounded border-2 flex items-center justify-center cursor-pointer transition-colors ${
+                  task.completed
+                    ? 'bg-green-500 border-green-500 text-white'
+                    : 'border-muted-foreground/50 hover:border-green-500 hover:bg-green-500/10'
+                }`}
+                data-testid="task-complete-checkbox"
+              >
+                {task.completed && <Check className="h-3 w-3" />}
+              </div>
+            </div>
+
+            {/* Drag handle */}
             <button
               data-drag-handle
               data-testid="task-drag-handle"
@@ -191,35 +240,54 @@ export function TaskCard({
             >
               <GripVertical className="h-4 w-4" />
             </button>
+
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm truncate" data-testid="task-title">{task.title}</p>
+              <p 
+                className={`font-medium text-sm truncate ${
+                  task.completed ? 'line-through text-muted-foreground' : ''
+                }`} 
+                data-testid="task-title"
+              >
+                {task.title}
+              </p>
               {task.description && (
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2" data-testid="task-description">
+                <p 
+                  className={`text-xs mt-1 line-clamp-2 ${
+                    task.completed ? 'text-muted-foreground/60' : 'text-muted-foreground'
+                  }`} 
+                  data-testid="task-description"
+                >
                   {task.description}
                 </p>
               )}
               
               {/* Subtask Progress on card */}
               {subtasks.length > 0 && (
-                <div className="mt-2" data-testid="task-subtasks-progress">
+                <div className={`mt-2 ${task.completed ? 'opacity-60' : ''}`} data-testid="task-subtasks-progress">
                   <SubtaskProgress subtasks={subtasks} />
                 </div>
               )}
 
               {/* Priority, Due Date, and Attachments badges */}
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                {priority !== 'none' && (
+              <div className={`flex flex-wrap items-center gap-2 mt-2 ${task.completed ? 'opacity-60' : ''}`}>
+                {priority !== 'none' && !task.completed && (
                   <span data-testid="task-priority">
                     <PriorityBadge priority={priority} size="sm" />
                   </span>
                 )}
                 {task.dueDate && dueDateStatus && (
                   <div 
-                    className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${dueDateStyles[dueDateStatus].badge}`}
+                    className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded ${
+                      task.completed ? 'text-muted-foreground bg-muted' : dueDateStyles[dueDateStatus].badge
+                    }`}
                     data-testid="task-due-date"
-                    data-due-status={dueDateStatus}
+                    data-due-status={task.completed ? 'completed' : dueDateStatus}
                   >
-                    {React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })}
+                    {task.completed ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      React.createElement(dueDateStyles[dueDateStatus].icon, { className: 'h-3 w-3' })
+                    )}
                     <span>{formatDueDate(task.dueDate, dueDateStatus)}</span>
                   </div>
                 )}
@@ -248,6 +316,15 @@ export function TaskCard({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
+                  <DropdownMenuItem 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleComplete(e);
+                    }}
+                    data-testid="task-menu-toggle-complete"
+                  >
+                    {task.completed ? 'Mark Incomplete' : 'Mark Complete'}
+                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={(e) => {
                       e.stopPropagation();
@@ -291,6 +368,7 @@ export function TaskCard({
         onDeleteComment={onDeleteComment}
         onAddAttachment={onAddAttachment}
         onDeleteAttachment={onDeleteAttachment}
+        onToggleComplete={onToggleComplete}
       />
     </>
   );

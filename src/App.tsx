@@ -36,6 +36,7 @@ function AppContent() {
     addSubtask,
     toggleSubtask,
     deleteSubtask,
+    toggleTaskComplete,
     updateSubtask,
     addComment,
     updateComment,
@@ -73,6 +74,8 @@ function AppContent() {
     removeLabelFilter,
     clearDueDateFilter,
     removePriorityFilter,
+    setCompletionFilter,
+    clearCompletionFilter,
     filterTasks,
     hasActiveFilters,
     activeFilterCount,
@@ -513,6 +516,8 @@ function AppContent() {
         onRemovePriorityFilter={removePriorityFilter}
         activeFilterCount={activeFilterCount}
         hasActiveFilters={hasActiveFilters}
+        onCompletionFilterChange={setCompletionFilter}
+        onClearCompletionFilter={clearCompletionFilter}
         filteredTaskCount={taskStats.filtered}
         totalTaskCount={taskStats.total}
         // Keyboard shortcut props
@@ -570,6 +575,8 @@ function AppContent() {
               isNewTaskDialogOpen={isNewTaskDialogOpen}
               setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
               onDialogOpenChange={handleDialogOpenChange}
+              // Completion handler
+              onToggleTaskComplete={toggleTaskComplete}
             />
           )}
 
@@ -633,6 +640,7 @@ function AppContent() {
         onDeleteComment={deleteComment}
         onAddAttachment={addAttachment}
         onDeleteAttachment={deleteAttachment}
+        onToggleComplete={toggleTaskComplete}
       />
     </div>
   );

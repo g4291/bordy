@@ -85,6 +85,10 @@ export const getFileIcon = (mimeType: string): string => {
   return '📎';
 };
 
+// ==========================================
+// Task Completion (v2.2.0)
+// ==========================================
+
 export interface Task {
   id: string;
   title: string;
@@ -99,6 +103,8 @@ export interface Task {
   priority: TaskPriority;
   comments: Comment[];
   attachments: Attachment[];  // Added in v2.1.0
+  completed: boolean;       // Whether task is marked as complete
+  completedAt?: number;     // Timestamp when task was completed
 }
 
 export interface Column {
@@ -107,6 +113,7 @@ export interface Column {
   boardId: string;
   order: number;
   color?: string;
+  isCompleteColumn?: boolean;  // Tasks moved to this column are auto-marked complete
 }
 
 export interface Board {
@@ -162,6 +169,7 @@ export interface TemplateTask {
 export interface TemplateColumn {
   title: string;
   color?: string;
+  isCompleteColumn?: boolean;  // Tasks in this column are auto-marked complete
 }
 
 

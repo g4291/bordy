@@ -16,7 +16,7 @@ import {
 import { APP_VERSION } from '../version';
 import { Logo } from './Logo';
 import { Board, Label, BoardTemplate, TaskPriority } from '../types';
-import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
+import { TaskFilters, DueDateFilter, CompletionFilter } from '../hooks/useTaskFilter';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
@@ -76,6 +76,8 @@ interface HeaderProps {
   onClearDueDateFilter: () => void;
   onTogglePriorityFilter: (priority: TaskPriority) => void;
   onRemovePriorityFilter: (priority: TaskPriority) => void;
+  onCompletionFilterChange: (filter: CompletionFilter) => void;
+  onClearCompletionFilter: () => void;
   activeFilterCount: number;
   filteredTaskCount?: number;
   totalTaskCount?: number;
@@ -125,6 +127,8 @@ export function Header({
   onRemovePriorityFilter,
   activeFilterCount,
   filteredTaskCount,
+  onCompletionFilterChange,
+  onClearCompletionFilter,
   totalTaskCount,
   hasActiveFilters,
   // Keyboard shortcut props
@@ -307,6 +311,8 @@ export function Header({
               onTogglePriorityFilter={onTogglePriorityFilter}
               onDueDateFilterChange={onDueDateFilterChange}
               activeFilterCount={activeFilterCount}
+              completionFilter={filters.completionFilter}
+              onCompletionFilterChange={onCompletionFilterChange}
             />
           </div>
         )}
@@ -396,6 +402,7 @@ export function Header({
           onRemoveLabelFilter={onRemoveLabelFilter}
           onRemovePriorityFilter={onRemovePriorityFilter}
           onClearDueDateFilter={onClearDueDateFilter}
+          onClearCompletionFilter={onClearCompletionFilter}
           onClearAll={onClearFilters}
           filteredCount={filteredTaskCount}
           totalCount={totalTaskCount}
