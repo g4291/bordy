@@ -7,7 +7,7 @@ export interface Shortcut {
   alt?: boolean;
   action: () => void;
   description: string;
-  category: 'navigation' | 'actions' | 'dialogs';
+  category: 'navigation' | 'actions' | 'dialogs' | 'views';
   enabled?: boolean;
 }
 
@@ -77,6 +77,13 @@ export const SHORTCUT_DEFINITIONS = {
     { keys: ['←', '→'], description: 'Switch between boards' },
     { keys: ['1-9'], description: 'Quick access to board (1-9)' },
     { keys: ['/'], description: 'Focus search' },
+  ],
+  views: [
+    { keys: ['V'], description: 'Cycle view mode (Kanban/Calendar/Agenda)' },
+    { keys: ['T'], description: 'Go to today (Calendar)' },
+    { keys: ['M'], description: 'Month view (Calendar)' },
+    { keys: ['W'], description: 'Week view (Calendar)' },
+    { keys: ['[', ']'], description: 'Previous/Next (Calendar)' },
   ],
   actions: [
     { keys: ['N'], description: 'New task' },

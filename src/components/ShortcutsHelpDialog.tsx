@@ -14,6 +14,7 @@ interface ShortcutsHelpDialogProps {
 
 const categoryLabels: Record<string, { title: string; icon: string }> = {
   navigation: { title: 'Navigation', icon: '🧭' },
+  views: { title: 'Views', icon: '👁️' },
   actions: { title: 'Actions', icon: '⚡' },
   dialogs: { title: 'Dialogs', icon: '💬' },
 };
@@ -21,7 +22,7 @@ const categoryLabels: Record<string, { title: string; icon: string }> = {
 export function ShortcutsHelpDialog({ open, onOpenChange }: ShortcutsHelpDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>⌨️</span>

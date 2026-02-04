@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.7.1-green.svg)
+![Version](https://img.shields.io/badge/version-1.8.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -19,6 +19,8 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **🔍 Search & Filter** - Find tasks quickly by title, description, labels, priority, or due date
 - **✅ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
 - **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
+- **📅 Calendar View** - View tasks in month or week calendar format with drag & drop date change
+- **📋 Agenda View** - See tasks grouped by date (Overdue, Today, Tomorrow, This Week, Later)
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON with toast notifications
 - **100% Local Storage** - Your data never leaves your browser
@@ -29,6 +31,35 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 ![Kanban Board](./screenshots/board.png)
 ![Kanban Board Dark](./screenshots/board-dark.png)
 ![Task Detail](./screenshots/task-detail.png)
+
+## 📅 View Modes
+
+Bordy supports three view modes for managing your tasks:
+
+### Kanban View (Default)
+The classic board/column layout with drag & drop task management.
+
+### Calendar View
+View your tasks in a calendar format:
+- **Month View** - See the entire month at a glance
+- **Week View** - More detailed view of the current week
+- **Drag & Drop** - Drag tasks between days to change due dates
+- **Quick Add** - Click on any day to quickly add a task
+- **Task Preview** - Click "+X more" to see all tasks for a day
+
+### Agenda View
+A list-based view organized by due date:
+- **Overdue** - Tasks past their due date
+- **Today** - Tasks due today
+- **Tomorrow** - Tasks due tomorrow
+- **This Week** - Tasks due within the current week
+- **Later** - Tasks with future due dates
+- **No Date** - Tasks without a due date (collapsible)
+
+**Switching Views:**
+- Use the view switcher below the header
+- Press `V` to cycle through views
+- Calendar shortcuts: `T` (today), `M` (month), `W` (week), `[`/`]` (prev/next)
 
 ## 🎨 Column Colors
 
@@ -66,16 +97,27 @@ Tasks can be assigned one of 5 priority levels:
 
 Bordy supports keyboard shortcuts for faster navigation and task management:
 
+### Global Shortcuts
 | Shortcut | Action |
 |----------|--------|
 | `←` / `→` | Switch between boards |
 | `1` - `9` | Quick access to board 1-9 |
-| `/` or `Ctrl+K` | Focus search |
+| `/` | Focus search |
 | `N` | Create new task (in first column) |
 | `B` | Create new board |
 | `D` | Toggle dark/light theme |
+| `V` | Cycle view mode (Kanban → Calendar → Agenda) |
 | `?` | Show keyboard shortcuts help |
 | `Escape` | Close current dialog |
+
+### Calendar View Shortcuts
+| Shortcut | Action |
+|----------|--------|
+| `T` | Go to today |
+| `M` | Switch to month view |
+| `W` | Switch to week view |
+| `[` | Previous month/week |
+| `]` | Next month/week |
 
 > **Tip:** Press `?` anytime to see all available shortcuts!
 
@@ -129,10 +171,19 @@ The build output will be in the `build/` folder, ready to be deployed to any sta
 src/
 ├── components/
 │   ├── ui/                  # shadcn/ui components (+ toast)
+│   ├── views/               # View mode components
+│   │   ├── ViewSwitcher.tsx     # View mode tabs
+│   │   ├── CalendarView.tsx     # Calendar wrapper with DnD
+│   │   ├── CalendarMonthView.tsx
+│   │   ├── CalendarWeekView.tsx
+│   │   ├── CalendarDayCell.tsx
+│   │   ├── CalendarTaskItem.tsx
+│   │   ├── AgendaView.tsx       # Agenda list view
+│   │   └── TaskDetailDialog.tsx # Shared task detail dialog
 │   ├── Header.tsx           # App header with board management
 │   ├── KanbanBoard.tsx      # Main board component
 │   ├── KanbanColumn.tsx     # Column component with color support
-│   ├── TaskCard.tsx         # Task card with view/edit dialogs
+│   ├── TaskCard.tsx         # Task card with drag & drop
 │   ├── ColorPicker.tsx      # Reusable color picker component
 │   ├── LabelBadge.tsx       # Label display component
 │   ├── LabelManager.tsx     # Label management dialog
@@ -148,16 +199,18 @@ src/
 │   └── ShortcutsHelpDialog.tsx  # Keyboard shortcuts help
 ├── hooks/
 │   ├── useKanban.ts         # Board, column, task, subtask & label logic
+│   ├── useCalendar.ts       # Calendar state & navigation
 │   ├── useTemplates.ts      # Template management logic
 │   ├── useTaskFilter.ts     # Search & filter logic (incl. priority)
 │   ├── useTheme.ts          # Theme management
 │   └── useKeyboardShortcuts.ts  # Keyboard shortcuts logic
 ├── lib/
 │   ├── db.ts                # IndexedDB setup (v6)
+│   ├── calendar-utils.ts    # Date helper functions
 │   ├── templates.ts         # Built-in board templates with colors
 │   └── utils.ts             # Utility functions
 ├── types/
-│   └── index.ts             # TypeScript interfaces (incl. TaskPriority, COLUMN_COLORS)
+│   └── index.ts             # TypeScript interfaces
 ├── App.tsx
 └── index.css                # Tailwind & global styles
 ```
@@ -180,7 +233,7 @@ Bordy includes powerful search and filter capabilities:
 - **Filter by Labels** - Multi-select labels (OR logic)
 - **Filter by Priority** - Filter by Critical, High, Medium, Low, or None
 - **Filter by Due Date** - Overdue, Today, This Week, No Date
-- **Keyboard Shortcut** - Press `Ctrl+K` / `Cmd+K` or `/` to focus search
+- **Keyboard Shortcut** - Press `/` to focus search
 - **Persistence** - Filters are saved per board in localStorage
 
 ## 📋 Built-in Templates
@@ -203,11 +256,11 @@ You can also **save any board as a custom template** for reuse!
 
 ## 📊 Data Format
 
-Export/Import uses JSON format (version 1.7.1):
+Export/Import uses JSON format (version 1.8.0):
 
 ```json
 {
-  "version": "1.7.1",
+  "version": "1.8.0",
   "exportedAt": 1704067200000,
   "boards": [...],
   "columns": [
@@ -223,6 +276,7 @@ Export/Import uses JSON format (version 1.7.1):
       "id": "...",
       "title": "Task name",
       "priority": "high",
+      "dueDate": 1704067200000,
       "subtasks": [
         { "id": "...", "title": "Subtask", "completed": false }
       ],
@@ -246,8 +300,9 @@ Export/Import uses JSON format (version 1.7.1):
 - [x] Keyboard shortcuts
 - [x] Task priority levels
 - [x] Column colors
+- [x] Calendar view (Month & Week)
+- [x] Agenda view
 - [ ] Task comments / activity log
-- [ ] Calendar view
 - [ ] Notifications / Reminders
 
 ## 🤝 Contributing

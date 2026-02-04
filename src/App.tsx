@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 import { useKanban } from './hooks/useKanban';
 import { useTheme } from './hooks/useTheme';
 import { useTemplates } from './hooks/useTemplates';
@@ -8,7 +8,10 @@ import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ShortcutsHelpDialog } from './components/ShortcutsHelpDialog';
 import { ToastProvider, useToast } from './components/ui/toast';
-import { Column } from './types';
+import { ViewSwitcher, CalendarView, AgendaView, TaskDetailDialog, getNextViewMode } from './components/views';
+import { Column, Task, ViewMode, CalendarMode } from './types';
+
+const VIEW_MODE_STORAGE_KEY = 'bordy-view-mode';
 
 function AppContent() {
   const {
@@ -70,6 +73,31 @@ function AppContent() {
     activeFilterCount,
   } = useTaskFilter(currentBoard?.id);
 
+  // View mode state with persistence
+  const [viewMode, setViewModeState] = useState<ViewMode>('kanban');
+
+  // Load view mode from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+      if (stored && ['kanban', 'calendar', 'agenda'].includes(stored)) {
+        setViewModeState(stored as ViewMode);
+      }
+    } catch (error) {
+      console.error('Failed to load view mode:', error);
+    }
+  }, []);
+
+  // Set view mode with persistence
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    try {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode);
+    } catch (error) {
+      console.error('Failed to save view mode:', error);
+    }
+  }, []);
+
   // Shortcuts dialog state
   const [isShortcutsHelpOpen, setIsShortcutsHelpOpen] = useState(false);
 
@@ -79,12 +107,51 @@ function AppContent() {
   // New board dialog state (will be passed to Header)
   const [isNewBoardDialogOpen, setIsNewBoardDialogOpen] = useState(false);
 
+  // Task detail dialog state (for Calendar/Agenda views)
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
+
+  // Keep selectedTask in sync with actual task data
+  useEffect(() => {
+    if (selectedTask && isTaskDetailOpen) {
+      // Find the updated task in the tasks map
+      let updatedTask: Task | null = null;
+      for (const [, columnTasks] of tasks) {
+        const found = columnTasks.find(t => t.id === selectedTask.id);
+        if (found) {
+          updatedTask = found;
+          break;
+        }
+      }
+      
+      if (updatedTask) {
+        // Task still exists, update it
+        if (JSON.stringify(updatedTask) !== JSON.stringify(selectedTask)) {
+          setSelectedTask(updatedTask);
+        }
+      } else {
+        // Task was deleted, close the dialog
+        setSelectedTask(null);
+        setIsTaskDetailOpen(false);
+      }
+    }
+  }, [tasks, selectedTask, isTaskDetailOpen]);
+
   // Ref for search input focus
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  // Calendar control refs and state
+  const calendarControlsRef = useRef<{
+    goToToday: () => void;
+    goToPrevious: () => void;
+    goToNext: () => void;
+    setCalendarMode: (mode: CalendarMode) => void;
+    calendarMode: CalendarMode;
+  } | null>(null);
+
   // Track if any dialog is open to disable shortcuts
   const [dialogOpenCount, setDialogOpenCount] = useState(0);
-  const isAnyDialogOpen = dialogOpenCount > 0 || isShortcutsHelpOpen;
+  const isAnyDialogOpen = dialogOpenCount > 0 || isShortcutsHelpOpen || isTaskDetailOpen;
 
   const handleDialogOpenChange = useCallback((isOpen: boolean) => {
     setDialogOpenCount((prev) => (isOpen ? prev + 1 : Math.max(0, prev - 1)));
@@ -151,6 +218,48 @@ function AppContent() {
   const openNewBoardDialog = useCallback(() => {
     setIsNewBoardDialogOpen(true);
   }, []);
+
+  // Cycle through view modes
+  const cycleViewMode = useCallback(() => {
+    const nextMode = getNextViewMode(viewMode);
+    setViewMode(nextMode);
+    const modeLabels = { kanban: 'Kanban', calendar: 'Calendar', agenda: 'Agenda' };
+    showToast(`🔄 ${modeLabels[nextMode]} view`, 'default', 1500);
+  }, [viewMode, setViewMode, showToast]);
+
+  // Calendar keyboard shortcuts handlers
+  const handleCalendarToday = useCallback(() => {
+    if (viewMode === 'calendar' && calendarControlsRef.current) {
+      calendarControlsRef.current.goToToday();
+      showToast('📅 Today', 'default', 1000);
+    }
+  }, [viewMode, showToast]);
+
+  const handleCalendarPrevious = useCallback(() => {
+    if (viewMode === 'calendar' && calendarControlsRef.current) {
+      calendarControlsRef.current.goToPrevious();
+    }
+  }, [viewMode]);
+
+  const handleCalendarNext = useCallback(() => {
+    if (viewMode === 'calendar' && calendarControlsRef.current) {
+      calendarControlsRef.current.goToNext();
+    }
+  }, [viewMode]);
+
+  const handleCalendarMonthView = useCallback(() => {
+    if (viewMode === 'calendar' && calendarControlsRef.current) {
+      calendarControlsRef.current.setCalendarMode('month');
+      showToast('📅 Month view', 'default', 1000);
+    }
+  }, [viewMode, showToast]);
+
+  const handleCalendarWeekView = useCallback(() => {
+    if (viewMode === 'calendar' && calendarControlsRef.current) {
+      calendarControlsRef.current.setCalendarMode('week');
+      showToast('📅 Week view', 'default', 1000);
+    }
+  }, [viewMode, showToast]);
 
   // Handle import with toast notification
   const handleImport = useCallback(async (file: File) => {
@@ -221,6 +330,49 @@ function AppContent() {
         description: 'Toggle theme',
         category: 'actions',
       },
+      // View mode
+      {
+        key: 'v',
+        action: cycleViewMode,
+        description: 'Cycle view mode',
+        category: 'views',
+      },
+      // Calendar-specific shortcuts
+      {
+        key: 't',
+        action: handleCalendarToday,
+        description: 'Go to today (Calendar)',
+        category: 'views',
+        enabled: viewMode === 'calendar',
+      },
+      {
+        key: 'm',
+        action: handleCalendarMonthView,
+        description: 'Month view (Calendar)',
+        category: 'views',
+        enabled: viewMode === 'calendar',
+      },
+      {
+        key: 'w',
+        action: handleCalendarWeekView,
+        description: 'Week view (Calendar)',
+        category: 'views',
+        enabled: viewMode === 'calendar',
+      },
+      {
+        key: '[',
+        action: handleCalendarPrevious,
+        description: 'Previous (Calendar)',
+        category: 'views',
+        enabled: viewMode === 'calendar',
+      },
+      {
+        key: ']',
+        action: handleCalendarNext,
+        description: 'Next (Calendar)',
+        category: 'views',
+        enabled: viewMode === 'calendar',
+      },
       // Number shortcuts 1-9
       ...Array.from({ length: 9 }, (_, i) => ({
         key: String(i + 1),
@@ -229,7 +381,21 @@ function AppContent() {
         category: 'navigation' as const,
       })),
     ],
-    [navigateBoard, focusSearch, openNewTaskDialog, openNewBoardDialog, toggleTheme, selectBoardByNumber]
+    [
+      navigateBoard,
+      focusSearch,
+      openNewTaskDialog,
+      openNewBoardDialog,
+      toggleTheme,
+      selectBoardByNumber,
+      cycleViewMode,
+      handleCalendarToday,
+      handleCalendarMonthView,
+      handleCalendarWeekView,
+      handleCalendarPrevious,
+      handleCalendarNext,
+      viewMode,
+    ]
   );
 
   // Register keyboard shortcuts
@@ -251,6 +417,36 @@ function AppContent() {
 
     return { total: totalTasks, filtered: filteredTasks };
   }, [columns, tasks, filterTasks]);
+
+  // Flatten tasks for calendar/agenda views
+  const allTasks = useMemo((): Task[] => {
+    const flatTasks: Task[] = [];
+    columns.forEach((column: Column) => {
+      const columnTasks = tasks.get(column.id) || [];
+      flatTasks.push(...columnTasks);
+    });
+    return flatTasks;
+  }, [columns, tasks]);
+
+  // Filtered flat tasks for calendar/agenda
+  const filteredAllTasks = useMemo(() => {
+    return filterTasks(allTasks);
+  }, [allTasks, filterTasks]);
+
+  // Get first column ID for creating tasks
+  const firstColumnId = columns.length > 0 ? columns[0].id : undefined;
+
+  // Handler for task click in calendar/agenda views
+  const handleCalendarTaskClick = useCallback((task: Task) => {
+    setSelectedTask(task);
+    setIsTaskDetailOpen(true);
+  }, []);
+
+  // Handler for task date change (drag & drop in calendar)
+  const handleTaskDateChange = useCallback((taskId: string, newDate: Date) => {
+    updateTask(taskId, { dueDate: newDate.getTime() });
+    showToast('📅 Due date updated', 'success', 1500);
+  }, [updateTask, showToast]);
 
   // Handler for saving current board as template
   const handleSaveCurrentBoardAsTemplate = async (
@@ -323,33 +519,71 @@ function AppContent() {
         setIsNewBoardDialogOpen={setIsNewBoardDialogOpen}
       />
 
+      {/* View Switcher - shown when board is selected */}
+      {currentBoard && (
+        <div className="flex items-center justify-center py-2 border-b bg-muted/30">
+          <ViewSwitcher
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
+        </div>
+      )}
+
       {currentBoard ? (
-        <KanbanBoard
-          columns={columns}
-          tasks={tasks}
-          labels={labels}
-          onCreateColumn={createColumn}
-          onUpdateColumn={updateColumn}
-          onReorderColumns={reorderColumns}
-          onDeleteColumn={deleteColumn}
-          onCreateTask={createTask}
-          onUpdateTask={updateTask}
-          onDeleteTask={deleteTask}
-          onMoveTask={moveTask}
-          // Filter props
-          filterTasks={filterTasks}
-          hasActiveFilters={hasActiveFilters}
-          onClearFilters={clearFilters}
-          // Subtask props
-          onAddSubtask={addSubtask}
-          onToggleSubtask={toggleSubtask}
-          onDeleteSubtask={deleteSubtask}
-          onUpdateSubtask={updateSubtask}
-          // Keyboard shortcut props
-          isNewTaskDialogOpen={isNewTaskDialogOpen}
-          setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
-          onDialogOpenChange={handleDialogOpenChange}
-        />
+        <>
+          {/* Kanban View */}
+          {viewMode === 'kanban' && (
+            <KanbanBoard
+              columns={columns}
+              tasks={tasks}
+              labels={labels}
+              onCreateColumn={createColumn}
+              onUpdateColumn={updateColumn}
+              onReorderColumns={reorderColumns}
+              onDeleteColumn={deleteColumn}
+              onCreateTask={createTask}
+              onUpdateTask={updateTask}
+              onDeleteTask={deleteTask}
+              onMoveTask={moveTask}
+              // Filter props
+              filterTasks={filterTasks}
+              hasActiveFilters={hasActiveFilters}
+              onClearFilters={clearFilters}
+              // Subtask props
+              onAddSubtask={addSubtask}
+              onToggleSubtask={toggleSubtask}
+              onDeleteSubtask={deleteSubtask}
+              onUpdateSubtask={updateSubtask}
+              // Keyboard shortcut props
+              isNewTaskDialogOpen={isNewTaskDialogOpen}
+              setIsNewTaskDialogOpen={setIsNewTaskDialogOpen}
+              onDialogOpenChange={handleDialogOpenChange}
+            />
+          )}
+
+          {/* Calendar View */}
+          {viewMode === 'calendar' && (
+            <CalendarView
+              tasks={filteredAllTasks}
+              labels={labels}
+              onTaskClick={handleCalendarTaskClick}
+              onCreateTask={createTask}
+              onUpdateTask={updateTask}
+              onTaskDateChange={handleTaskDateChange}
+              defaultColumnId={firstColumnId}
+              controlsRef={calendarControlsRef}
+            />
+          )}
+
+          {/* Agenda View */}
+          {viewMode === 'agenda' && (
+            <AgendaView
+              tasks={filteredAllTasks}
+              labels={labels}
+              onTaskClick={handleCalendarTaskClick}
+            />
+          )}
+        </>
       ) : (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
@@ -368,6 +602,20 @@ function AppContent() {
       <ShortcutsHelpDialog
         open={isShortcutsHelpOpen}
         onOpenChange={setIsShortcutsHelpOpen}
+      />
+
+      {/* Task Detail Dialog (for Calendar/Agenda views) */}
+      <TaskDetailDialog
+        task={selectedTask}
+        labels={labels}
+        open={isTaskDetailOpen}
+        onOpenChange={setIsTaskDetailOpen}
+        onUpdate={updateTask}
+        onDelete={deleteTask}
+        onAddSubtask={addSubtask}
+        onToggleSubtask={toggleSubtask}
+        onDeleteSubtask={deleteSubtask}
+        onUpdateSubtask={updateSubtask}
       />
     </div>
   );

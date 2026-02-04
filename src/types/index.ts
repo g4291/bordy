@@ -118,3 +118,27 @@ export interface BoardTemplate {
   createdAt: number;
   updatedAt: number;
 }
+
+// ==========================================
+// View Mode Types (v1.8.0 - Calendar/Agenda)
+// ==========================================
+
+export type ViewMode = 'kanban' | 'calendar' | 'agenda';
+export type CalendarMode = 'month' | 'week';
+
+export interface CalendarDay {
+  date: Date;
+  dateKey: string;        // 'YYYY-MM-DD' for easy comparison
+  isCurrentMonth: boolean;
+  isToday: boolean;
+  isWeekend: boolean;
+  tasks: Task[];
+}
+
+export interface AgendaGroup {
+  key: string;            // 'overdue' | 'today' | 'tomorrow' | 'this-week' | 'later' | 'no-date' | date string
+  label: string;          // Display label
+  tasks: Task[];
+  isCollapsible: boolean;
+  defaultCollapsed: boolean;
+}

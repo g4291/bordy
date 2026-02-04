@@ -1,7 +1,7 @@
 {
   "name": "bordy",
-  "version": "1.7.1",
-  "description": "A simple, fast, and privacy-focused Kanban board application",
+  "version": "1.8.0",
+  "description": "A simple, fast, and privacy-focused Kanban board application with Calendar and Agenda views",
   "private": true,
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
@@ -68,7 +68,9 @@
     "offline-first",
     "keyboard-shortcuts",
     "task-priority",
-    "column-colors"
+    "column-colors",
+    "calendar-view",
+    "agenda-view"
   ],
   "author": "",
   "license": "MIT"
