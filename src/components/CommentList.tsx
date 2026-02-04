@@ -3,6 +3,7 @@ import { MessageSquare, Plus } from 'lucide-react';
 import { Comment } from '../types';
 import { CommentItem } from './CommentItem';
 import { Button } from './ui/button';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface CommentListProps {
   taskId: string;
@@ -77,12 +78,14 @@ export function CommentList({
 
       {/* Add comment form */}
       <div className="space-y-2">
-        <textarea
+        <MarkdownEditor
           value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
+          onChange={setNewComment}
           onKeyDown={handleKeyDown}
-          placeholder="Write a comment..."
-          className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
+          placeholder="Write a comment... (supports Markdown)"
+          minHeight="60px"
+          compact
+          showHelp={false}
         />
         <div className="flex items-center justify-between">
           <p className="text-xs text-muted-foreground">

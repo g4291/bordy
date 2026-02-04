@@ -19,6 +19,8 @@ import { SubtaskList } from '../SubtaskList';
 import { PriorityBadge } from '../PriorityBadge';
 import { PrioritySelect } from '../PrioritySelect';
 import { CommentList } from '../CommentList';
+import { MarkdownRenderer } from '../MarkdownRenderer';
+import { MarkdownEditor } from '../MarkdownEditor';
 
 interface TaskDetailDialogProps {
   task: Task | null;
@@ -200,13 +202,15 @@ export function TaskDetailDialog({
               </div>
             )}
 
-            {/* Description */}
+            {/* Description with Markdown */}
             {task.description && (
               <div>
                 <h4 className="text-sm font-medium mb-2 text-muted-foreground">
                   Description
                 </h4>
-                <p className="text-sm whitespace-pre-wrap">{task.description}</p>
+                <div className="p-3 rounded-md bg-muted/30 border border-border">
+                  <MarkdownRenderer content={task.description} />
+                </div>
               </div>
             )}
 
@@ -329,12 +333,12 @@ export function TaskDetailDialog({
             />
           </div>
           <div>
-            <label className="text-sm font-medium">Description</label>
-            <textarea
+            <label className="text-sm font-medium mb-2 block">Description</label>
+            <MarkdownEditor
               value={editDescription}
-              onChange={(e) => setEditDescription(e.target.value)}
-              placeholder="Task description (optional)"
-              className="w-full min-h-[80px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+              onChange={setEditDescription}
+              placeholder="Task description (optional) - supports Markdown"
+              minHeight="100px"
             />
           </div>
 

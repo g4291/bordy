@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Pencil, Trash2, X, Check } from 'lucide-react';
 import { Comment } from '../types';
 import { Button } from './ui/button';
+import { MarkdownRenderer } from './MarkdownRenderer';
+import { MarkdownEditor } from './MarkdownEditor';
 
 interface CommentItemProps {
   comment: Comment;
@@ -48,11 +50,13 @@ export function CommentItem({ comment, onUpdate, onDelete }: CommentItemProps) {
   if (isEditing) {
     return (
       <div className="p-3 border rounded-lg bg-muted/50">
-        <textarea
+        <MarkdownEditor
           value={editText}
-          onChange={(e) => setEditText(e.target.value)}
+          onChange={setEditText}
           onKeyDown={handleKeyDown}
-          className="w-full min-h-[60px] px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+          placeholder="Edit comment..."
+          minHeight="60px"
+          compact
           autoFocus
         />
         <div className="flex justify-end gap-2 mt-2">
@@ -74,7 +78,7 @@ export function CommentItem({ comment, onUpdate, onDelete }: CommentItemProps) {
 
   return (
     <div className="group p-3 border rounded-lg hover:bg-muted/30 transition-colors">
-      <p className="text-sm whitespace-pre-wrap">{comment.text}</p>
+      <MarkdownRenderer content={comment.text} compact />
       <div className="flex items-center justify-between mt-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>{formatDate(comment.createdAt)}</span>

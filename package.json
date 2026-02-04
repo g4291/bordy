@@ -1,6 +1,6 @@
 {
   "name": "bordy",
-  "version": "1.9.0",
+  "version": "2.0.0",
   "description": "A simple, fast, and privacy-focused Kanban board application with Calendar and Agenda views",
   "private": true,
   "dependencies": {
@@ -19,12 +19,15 @@
     "lucide-react": "^0.312.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-markdown": "^9.0.1",
     "react-scripts": "5.0.1",
+    "remark-gfm": "^4.0.0",
     "tailwind-merge": "^2.2.1",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
     "@types/node": "^16.18.0",
     "@types/react": "^18.2.48",
     "@types/react-dom": "^18.2.18",
@@ -70,7 +73,8 @@
     "task-priority",
     "column-colors",
     "calendar-view",
-    "agenda-view"
+    "agenda-view",
+    "markdown"
   ],
   "author": "",
   "license": "MIT"
