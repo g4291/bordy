@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.4.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.5.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -15,7 +15,8 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Labels/Tags** - Organize tasks with colored labels
 - **Due Dates** - Set and track task deadlines with visual indicators
 - **🔍 Search & Filter** - Find tasks quickly by title, description, labels, or due date
-- **☑️ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
+- **✅ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
+- **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON
 - **100% Local Storage** - Your data never leaves your browser
@@ -26,6 +27,23 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 ![Kanban Board](./screenshots/board.png)
 ![Kanban Board Dark](./screenshots/board-dark.png)
 ![Task Detail](./screenshots/task-detail.png)
+
+## ⌨️ Keyboard Shortcuts
+
+Bordy supports keyboard shortcuts for faster navigation and task management:
+
+| Shortcut | Action |
+|----------|--------|
+| `←` / `→` | Switch between boards |
+| `1` - `9` | Quick access to board 1-9 |
+| `/` or `Ctrl+K` | Focus search |
+| `N` | Create new task (in first column) |
+| `B` | Create new board |
+| `D` | Toggle dark/light theme |
+| `?` | Show keyboard shortcuts help |
+| `Escape` | Close current dialog |
+
+> **Tip:** Press `?` anytime to see all available shortcuts!
 
 ## 🛠️ Tech Stack
 
@@ -76,7 +94,7 @@ The build output will be in the `build/` folder, ready to be deployed to any sta
 ```
 src/
 ├── components/
-│   ├── ui/                  # shadcn/ui components
+│   ├── ui/                  # shadcn/ui components (+ toast)
 │   ├── Header.tsx           # App header with board management
 │   ├── KanbanBoard.tsx      # Main board component
 │   ├── KanbanColumn.tsx     # Column component
@@ -89,12 +107,14 @@ src/
 │   ├── SubtaskProgress.tsx  # Subtask progress bar
 │   ├── SubtaskList.tsx      # Subtask checklist component
 │   ├── TemplatePicker.tsx   # Template selection component
-│   └── TemplateManager.tsx  # Template management dialog
+│   ├── TemplateManager.tsx  # Template management dialog
+│   └── ShortcutsHelpDialog.tsx  # Keyboard shortcuts help
 ├── hooks/
 │   ├── useKanban.ts         # Board, column, task, subtask & label logic
 │   ├── useTemplates.ts      # Template management logic
 │   ├── useTaskFilter.ts     # Search & filter logic
-│   └── useTheme.ts          # Theme management
+│   ├── useTheme.ts          # Theme management
+│   └── useKeyboardShortcuts.ts  # Keyboard shortcuts logic
 ├── lib/
 │   ├── db.ts                # IndexedDB setup (v5)
 │   ├── templates.ts         # Built-in board templates
@@ -105,7 +125,7 @@ src/
 └── index.css                # Tailwind & global styles
 ```
 
-## ☑️ Subtasks / Checklists
+## ✅ Subtasks / Checklists
 
 Tasks can have subtasks (checklist items):
 
@@ -122,7 +142,7 @@ Bordy includes powerful search and filter capabilities:
 - **Search** - Search tasks by title or description (with debounce)
 - **Filter by Labels** - Multi-select labels (OR logic)
 - **Filter by Due Date** - Overdue, Today, This Week, No Date
-- **Keyboard Shortcut** - Press `Ctrl+K` / `Cmd+K` to focus search
+- **Keyboard Shortcut** - Press `Ctrl+K` / `Cmd+K` or `/` to focus search
 - **Persistence** - Filters are saved per board in localStorage
 
 ## 📋 Built-in Templates
@@ -132,7 +152,7 @@ Bordy comes with 8 ready-to-use templates:
 | Template | Description |
 |----------|-------------|
 | 📋 Blank Board | Start fresh with empty columns |
-| 🎯 Project Management | Track project tasks from planning to completion |
+| 🚀 Project Management | Track project tasks from planning to completion |
 | 🏃 Agile Sprint | Manage sprints with user stories and tasks |
 | 📢 Marketing Campaign | Plan and track marketing activities |
 | 📝 Content Calendar | Manage content creation workflow |
@@ -176,10 +196,11 @@ Export/Import uses JSON format (version 1.3.0):
 - [x] Custom template management
 - [x] Search and filter (by title, description, labels & due date)
 - [x] Subtasks / checklists
-- [ ] Keyboard shortcuts (N = new task, arrows = navigate)
+- [x] Keyboard shortcuts
 - [ ] Task priority levels
 - [ ] Task comments / activity log
 - [ ] Calendar view
+- [ ] Column colors
 
 ## 🤝 Contributing
 

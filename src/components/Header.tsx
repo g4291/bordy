@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Plus,
   Download,
@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   Tags,
   FileStack,
+  Keyboard,
 } from 'lucide-react';
 import { Board, Label, BoardTemplate } from '../types';
 import { TaskFilters, DueDateFilter } from '../hooks/useTaskFilter';
@@ -76,6 +77,13 @@ interface HeaderProps {
   filteredTaskCount?: number;
   totalTaskCount?: number;
   hasActiveFilters: boolean;
+  // Keyboard shortcut props
+  searchInputRef?: React.RefObject<HTMLInputElement>;
+  onShowShortcutsHelp?: () => void;
+  onDialogOpenChange?: (isOpen: boolean) => void;
+  // External dialog control
+  isNewBoardDialogOpen?: boolean;
+  setIsNewBoardDialogOpen?: (open: boolean) => void;
 }
 
 export function Header({
@@ -114,8 +122,15 @@ export function Header({
   filteredTaskCount,
   totalTaskCount,
   hasActiveFilters,
+  // Keyboard shortcut props
+  searchInputRef,
+  onShowShortcutsHelp,
+  onDialogOpenChange,
+  // External dialog control
+  isNewBoardDialogOpen,
+  setIsNewBoardDialogOpen,
 }: HeaderProps) {
-  const [isCreating, setIsCreating] = useState(false);
+  const [isCreatingInternal, setIsCreatingInternal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLabelManagerOpen, setIsLabelManagerOpen] = useState(false);
@@ -125,6 +140,15 @@ export function Header({
     BUILT_IN_TEMPLATES[0]
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Use external or internal state for create dialog
+  const isCreating = isNewBoardDialogOpen ?? isCreatingInternal;
+  const setIsCreating = setIsNewBoardDialogOpen ?? setIsCreatingInternal;
+
+  // Notify parent about dialog state changes
+  useEffect(() => {
+    onDialogOpenChange?.(isCreating || isEditing || isDeleting || isLabelManagerOpen || isTemplateManagerOpen);
+  }, [isCreating, isEditing, isDeleting, isLabelManagerOpen, isTemplateManagerOpen, onDialogOpenChange]);
 
   const handleCreateBoard = () => {
     if (boardTitle.trim()) {
@@ -183,19 +207,29 @@ export function Header({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-[200px]">
-              {boards.map((board) => (
+              {boards.map((board, index) => (
                 <DropdownMenuItem
                   key={board.id}
                   onClick={() => onSelectBoard(board)}
                   className={currentBoard?.id === board.id ? 'bg-accent' : ''}
                 >
-                  {board.title}
+                  <span className="flex items-center gap-2 w-full">
+                    {index < 9 && (
+                      <kbd className="px-1 py-0.5 text-[10px] font-mono bg-muted rounded border opacity-60">
+                        {index + 1}
+                      </kbd>
+                    )}
+                    <span className="truncate">{board.title}</span>
+                  </span>
                 </DropdownMenuItem>
               ))}
               {boards.length > 0 && <DropdownMenuSeparator />}
               <DropdownMenuItem onClick={handleOpenCreateDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 New Board
+                <kbd className="ml-auto px-1 py-0.5 text-[10px] font-mono bg-muted rounded border opacity-60">
+                  B
+                </kbd>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -246,6 +280,7 @@ export function Header({
         {currentBoard && (
           <div className="flex items-center gap-2 flex-1 max-w-md">
             <SearchBar
+              ref={searchInputRef}
               value={filters.searchQuery}
               onChange={onSearchChange}
               placeholder="Search tasks..."
@@ -262,13 +297,24 @@ export function Header({
           </div>
         )}
 
-        {/* Right section: Theme, Import, Export */}
+        {/* Right section: Theme, Shortcuts, Import, Export */}
         <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Keyboard shortcuts button */}
+          {onShowShortcutsHelp && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onShowShortcutsHelp}
+              title="Keyboard shortcuts (?)"
+            >
+              <Keyboard className="h-5 w-5" />
+            </Button>
+          )}
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleTheme}
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={theme === 'dark' ? 'Switch to light mode (D)' : 'Switch to dark mode (D)'}
           >
             {theme === 'dark' ? (
               <Sun className="h-5 w-5" />

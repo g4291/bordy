@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -52,6 +52,10 @@ interface KanbanBoardProps {
   filterTasks: (tasks: Task[]) => Task[];
   hasActiveFilters: boolean;
   onClearFilters: () => void;
+  // Keyboard shortcut props
+  isNewTaskDialogOpen?: boolean;
+  setIsNewTaskDialogOpen?: (open: boolean) => void;
+  onDialogOpenChange?: (isOpen: boolean) => void;
 }
 
 type DragType = 'column' | 'task' | null;
@@ -75,12 +79,29 @@ export function KanbanBoard({
   filterTasks,
   hasActiveFilters,
   onClearFilters,
+  isNewTaskDialogOpen,
+  setIsNewTaskDialogOpen,
+  onDialogOpenChange,
 }: KanbanBoardProps) {
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnTitle, setNewColumnTitle] = useState('');
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [dragType, setDragType] = useState<DragType>(null);
+
+  // New task dialog state (can be controlled externally)
+  const [isAddingTaskInternal, setIsAddingTaskInternal] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState<string>('');
+
+  // Use external or internal state for new task dialog
+  const isAddingTask = isNewTaskDialogOpen ?? isAddingTaskInternal;
+  const setIsAddingTask = setIsNewTaskDialogOpen ?? setIsAddingTaskInternal;
+
+  // Notify parent about dialog state changes
+  useEffect(() => {
+    onDialogOpenChange?.(isAddingColumn || isAddingTask);
+  }, [isAddingColumn, isAddingTask, onDialogOpenChange]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -95,6 +116,20 @@ export function KanbanBoard({
       onCreateColumn(newColumnTitle.trim());
       setNewColumnTitle('');
       setIsAddingColumn(false);
+    }
+  };
+
+  // Handle add task to first column
+  const handleAddTask = () => {
+    if (newTaskTitle.trim() && columns.length > 0) {
+      onCreateTask(
+        columns[0].id,
+        newTaskTitle.trim(),
+        undefined
+      );
+      setNewTaskTitle('');
+      setNewTaskDueDate('');
+      setIsAddingTask(false);
     }
   };
 
@@ -336,6 +371,7 @@ export function KanbanBoard({
         </DragOverlay>
       </DndContext>
 
+      {/* Add Column Dialog */}
       <Dialog open={isAddingColumn} onOpenChange={setIsAddingColumn}>
         <DialogContent>
           <DialogHeader>
@@ -348,12 +384,55 @@ export function KanbanBoard({
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleAddColumn();
             }}
+            autoFocus
           />
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddingColumn(false)}>
               Cancel
             </Button>
             <Button onClick={handleAddColumn}>Add</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Quick Add Task Dialog (N shortcut) */}
+      <Dialog open={isAddingTask} onOpenChange={setIsAddingTask}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Quick Add Task
+              {columns.length > 0 && (
+                <span className="text-sm font-normal text-muted-foreground ml-2">
+                  → {columns[0].title}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Task title"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newTaskTitle.trim()) handleAddTask();
+              }}
+              autoFocus
+            />
+            <Input
+              type="date"
+              value={newTaskDueDate}
+              onChange={(e) => setNewTaskDueDate(e.target.value)}
+              placeholder="Due date (optional)"
+              className="text-sm"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddingTask(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddTask} disabled={!newTaskTitle.trim() || columns.length === 0}>
+              Add Task
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
