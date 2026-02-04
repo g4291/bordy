@@ -80,6 +80,8 @@ export function AttachmentLightbox({
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case 'Escape':
+          e.preventDefault();
+          e.stopPropagation();
           onClose();
           break;
         case 'ArrowLeft':
@@ -101,8 +103,9 @@ export function AttachmentLightbox({
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Use capture phase to intercept Escape before Radix Dialog handles it
+    window.addEventListener('keydown', handleKeyDown, true);
+    return () => window.removeEventListener('keydown', handleKeyDown, true);
   }, [open, handlePrevious, handleNext, onClose, handleZoomIn, handleZoomOut, handleResetZoom]);
 
   // Prevent body scroll when lightbox is open
