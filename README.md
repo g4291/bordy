@@ -3,7 +3,7 @@
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Version](https://img.shields.io/badge/version-1.7.0-green.svg)
+![Version](https://img.shields.io/badge/version-1.7.1-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 
@@ -20,7 +20,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **✅ Subtasks/Checklists** - Break down tasks into smaller items with progress tracking
 - **⌨️ Keyboard Shortcuts** - Navigate and create tasks without touching the mouse
 - **Dark/Light Theme** - Switch between themes based on your preference
-- **Import/Export** - Backup and restore your data as JSON
+- **Import/Export** - Backup and restore your data as JSON with toast notifications
 - **100% Local Storage** - Your data never leaves your browser
 - **No Account Required** - Start using immediately, no sign-up needed
 
@@ -203,11 +203,11 @@ You can also **save any board as a custom template** for reuse!
 
 ## 📊 Data Format
 
-Export/Import uses JSON format (version 1.7.0):
+Export/Import uses JSON format (version 1.7.1):
 
 ```json
 {
-  "version": "1.7.0",
+  "version": "1.7.1",
   "exportedAt": 1704067200000,
   "boards": [...],
   "columns": [

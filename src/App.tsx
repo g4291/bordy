@@ -152,6 +152,26 @@ function AppContent() {
     setIsNewBoardDialogOpen(true);
   }, []);
 
+  // Handle import with toast notification
+  const handleImport = useCallback(async (file: File) => {
+    const result = await importData(file);
+    if (result.success) {
+      showToast(`✅ ${result.message}`, 'success', 3000);
+    } else {
+      showToast(`❌ ${result.message}`, 'error', 4000);
+    }
+  }, [importData, showToast]);
+
+  // Handle export with toast notification
+  const handleExport = useCallback(async () => {
+    const result = await exportData();
+    if (result.success) {
+      showToast(`📦 ${result.message}`, 'success', 3000);
+    } else {
+      showToast(`❌ ${result.message}`, 'error', 4000);
+    }
+  }, [exportData, showToast]);
+
   // Define keyboard shortcuts
   const shortcuts: Shortcut[] = useMemo(
     () => [
@@ -263,8 +283,8 @@ function AppContent() {
         onCreateBoard={createBoard}
         onUpdateBoard={updateBoard}
         onDeleteBoard={deleteBoard}
-        onExport={exportData}
-        onImport={importData}
+        onExport={handleExport}
+        onImport={handleImport}
         theme={theme}
         onToggleTheme={toggleTheme}
         labels={labels}

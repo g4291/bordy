@@ -460,25 +460,51 @@ export function useKanban() {
   }, [tasks]);
 
   // Export/Import operations
-  const exportData = useCallback(async () => {
-    const data = await db.exportData();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `kanban-export-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const exportData = useCallback(async (): Promise<{ success: boolean; message: string; boardCount?: number }> => {
+    try {
+      const data = await db.exportData();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `kanban-export-${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      return { 
+        success: true, 
+        message: `Exported ${data.boards.length} board(s)`,
+        boardCount: data.boards.length 
+      };
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      return { success: false, message: 'Failed to export data. Please try again.' };
+    }
   }, []);
 
-  const importData = useCallback(async (file: File) => {
+  const importData = useCallback(async (file: File): Promise<{ success: boolean; message: string; boardCount?: number }> => {
     try {
       const text = await file.text();
-      const data: KanbanData = JSON.parse(text);
+      let data: KanbanData;
+      
+      try {
+        data = JSON.parse(text);
+      } catch {
+        return { success: false, message: 'Invalid JSON file. Please check the file format.' };
+      }
       
       // Validate data structure
-      if (!data.boards || !data.columns || !data.tasks) {
-        throw new Error('Invalid data format');
+      if (!data.boards || !Array.isArray(data.boards)) {
+        return { success: false, message: 'Invalid file format: missing or invalid boards data.' };
+      }
+      if (!data.columns || !Array.isArray(data.columns)) {
+        return { success: false, message: 'Invalid file format: missing or invalid columns data.' };
+      }
+      if (!data.tasks || !Array.isArray(data.tasks)) {
+        return { success: false, message: 'Invalid file format: missing or invalid tasks data.' };
+      }
+      
+      if (data.boards.length === 0) {
+        return { success: false, message: 'The file contains no boards to import.' };
       }
       
       await db.importData(data);
@@ -488,10 +514,14 @@ export function useKanban() {
         setCurrentBoard(data.boards[0]);
       }
       
-      return true;
+      return { 
+        success: true, 
+        message: `Successfully imported ${data.boards.length} board(s)`,
+        boardCount: data.boards.length 
+      };
     } catch (error) {
       console.error('Failed to import data:', error);
-      return false;
+      return { success: false, message: 'Failed to import data. Please try again.' };
     }
   }, []);
 

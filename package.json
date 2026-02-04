@@ -1,6 +1,6 @@
 {
   "name": "bordy",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A simple, fast, and privacy-focused Kanban board application",
   "private": true,
   "dependencies": {
