@@ -1,0 +1,270 @@
+import React, { useState } from 'react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { useDroppable } from '@dnd-kit/core';
+import { Plus, MoreVertical, Pencil, Trash2, GripVertical, AlertTriangle } from 'lucide-react';
+import { Column, Task, Label } from '../types';
+import { TaskCard } from './TaskCard';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from './ui/dialog';
+
+interface KanbanColumnProps {
+  column: Column;
+  tasks: Task[];
+  labels: Label[];
+  onUpdateColumn: (id: string, title: string) => void;
+  onDeleteColumn: (id: string) => void;
+  onCreateTask: (columnId: string, title: string, description?: string) => void;
+  onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds'>>) => void;
+  onDeleteTask: (id: string) => void;
+}
+
+export function KanbanColumn({
+  column,
+  tasks,
+  labels,
+  onUpdateColumn,
+  onDeleteColumn,
+  onCreateTask,
+  onUpdateTask,
+  onDeleteTask,
+}: KanbanColumnProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [editTitle, setEditTitle] = useState(column.title);
+  const [isAddingTask, setIsAddingTask] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+
+  // Sortable for the column itself (for reordering columns)
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setSortableNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ 
+    id: column.id, 
+    data: { type: 'column', column } 
+  });
+
+  // Droppable for receiving tasks (separate drop zone inside the column)
+  const { setNodeRef: setDroppableNodeRef, isOver } = useDroppable({
+    id: `column-drop-${column.id}`,
+    data: { type: 'column-drop', columnId: column.id }
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  const handleSaveTitle = () => {
+    if (editTitle.trim()) {
+      onUpdateColumn(column.id, editTitle.trim());
+      setIsEditing(false);
+    }
+  };
+
+  const handleDeleteColumn = () => {
+    onDeleteColumn(column.id);
+    setIsDeleting(false);
+  };
+
+  const handleAddTask = () => {
+    if (newTaskTitle.trim()) {
+      onCreateTask(column.id, newTaskTitle.trim());
+      setNewTaskTitle('');
+      setIsAddingTask(false);
+    }
+  };
+
+  if (isDragging) {
+    // Render placeholder when dragging
+    return (
+      <Card
+        ref={setSortableNodeRef}
+        style={style}
+        className="w-72 flex-shrink-0 bg-muted/30 border-dashed border-2 border-primary/50"
+      >
+        <CardHeader className="p-3 pb-2">
+          <div className="h-6" />
+        </CardHeader>
+        <CardContent className="p-3 pt-0">
+          <div className="min-h-[200px]" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card
+      ref={setSortableNodeRef}
+      style={style}
+      className="w-72 flex-shrink-0 bg-muted/50"
+    >
+      <CardHeader className="p-3 pb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-1">
+            <button
+              {...attributes}
+              {...listeners}
+              className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded text-muted-foreground"
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              {column.title}
+              <span className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                {tasks.length}
+              </span>
+            </CardTitle>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-6 w-6">
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsDeleting(true)}
+                className="text-destructive"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </CardHeader>
+      <CardContent className="p-3 pt-0">
+        <div
+          ref={setDroppableNodeRef}
+          className={`min-h-[200px] space-y-2 rounded-lg transition-colors ${isOver ? 'bg-primary/10' : ''}`}
+        >
+          <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+            {tasks.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                labels={labels}
+                onUpdate={onUpdateTask}
+                onDelete={onDeleteTask}
+              />
+            ))}
+          </SortableContext>
+          
+          {tasks.length === 0 && (
+            <div className="h-[100px] flex items-center justify-center text-muted-foreground text-sm">
+              Drop tasks here
+            </div>
+          )}
+        </div>
+
+        {isAddingTask ? (
+          <div className="mt-2 space-y-2">
+            <Input
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Task title"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleAddTask();
+                if (e.key === 'Escape') setIsAddingTask(false);
+              }}
+            />
+            <div className="flex gap-2">
+              <Button size="sm" onClick={handleAddTask}>
+                Add
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setIsAddingTask(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full mt-2 justify-start text-muted-foreground"
+            onClick={() => setIsAddingTask(true)}
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Add task
+          </Button>
+        )}
+      </CardContent>
+
+      {/* Rename Column Dialog */}
+      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Column</DialogTitle>
+          </DialogHeader>
+          <Input
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            placeholder="Column title"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSaveTitle();
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditing(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveTitle}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Column Confirmation Dialog */}
+      <Dialog open={isDeleting} onOpenChange={setIsDeleting}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Delete Column
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "<strong>{column.title}</strong>"? 
+              {tasks.length > 0 && (
+                <> This will also delete <strong>{tasks.length} task{tasks.length > 1 ? 's' : ''}</strong> in this column.</>
+              )}
+              {' '}This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleting(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteColumn}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  );
+}
