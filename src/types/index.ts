@@ -119,6 +119,7 @@ export interface Column {
 export interface Board {
   id: string;
   title: string;
+  notes?: string;           // Board notes (Markdown)
   createdAt: number;
   updatedAt: number;
 }

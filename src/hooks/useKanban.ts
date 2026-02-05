@@ -158,6 +158,18 @@ export function useKanban() {
     }
   }, [boards, currentBoard]);
 
+  const updateBoardNotes = useCallback(async (id: string, notes: string) => {
+    const board = boards.find(b => b.id === id);
+    if (!board) return;
+
+    const updated: Board = { ...board, notes, updatedAt: Date.now() };
+    await db.saveBoard(updated);
+    setBoards(prev => prev.map(b => b.id === id ? updated : b));
+    if (currentBoard?.id === id) {
+      setCurrentBoard(updated);
+    }
+  }, [boards, currentBoard]);
+
   // Column operations
   const createColumn = useCallback(async (title: string) => {
     if (!currentBoard) return;
@@ -723,6 +735,7 @@ export function useKanban() {
     setCurrentBoard,
     createBoard,
     updateBoard,
+    updateBoardNotes,
     deleteBoard,
     
     // Column operations

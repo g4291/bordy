@@ -7,6 +7,7 @@ import { useKeyboardShortcuts, Shortcut } from './hooks/useKeyboardShortcuts';
 import { Header } from './components/Header';
 import { KanbanBoard } from './components/KanbanBoard';
 import { ShortcutsHelpDialog } from './components/ShortcutsHelpDialog';
+import { BoardNotesDrawer } from './components/BoardNotesDrawer';
 import { ToastProvider, useToast } from './components/ui/toast';
 import { ViewSwitcher, CalendarView, AgendaView, TaskDetailDialog, getNextViewMode } from './components/views';
 import { Column, Task, ViewMode, CalendarMode } from './types';
@@ -24,6 +25,7 @@ function AppContent() {
     setCurrentBoard,
     createBoard,
     updateBoard,
+    updateBoardNotes,
     deleteBoard,
     createColumn,
     updateColumn,
@@ -115,6 +117,9 @@ function AppContent() {
   // New board dialog state (will be passed to Header)
   const [isNewBoardDialogOpen, setIsNewBoardDialogOpen] = useState(false);
 
+  // Board notes drawer state
+  const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
+
   // Task detail dialog state (for Calendar/Agenda views)
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false);
@@ -159,7 +164,7 @@ function AppContent() {
 
   // Track if any dialog is open to disable shortcuts
   const [dialogOpenCount, setDialogOpenCount] = useState(0);
-  const isAnyDialogOpen = dialogOpenCount > 0 || isShortcutsHelpOpen || isTaskDetailOpen;
+  const isAnyDialogOpen = dialogOpenCount > 0 || isShortcutsHelpOpen || isTaskDetailOpen || isNotesDrawerOpen;
 
   const handleDialogOpenChange = useCallback((isOpen: boolean) => {
     setDialogOpenCount((prev) => (isOpen ? prev + 1 : Math.max(0, prev - 1)));
@@ -527,6 +532,9 @@ function AppContent() {
         // External dialog control
         isNewBoardDialogOpen={isNewBoardDialogOpen}
         setIsNewBoardDialogOpen={setIsNewBoardDialogOpen}
+        // Notes drawer control
+        isNotesDrawerOpen={isNotesDrawerOpen}
+        setIsNotesDrawerOpen={setIsNotesDrawerOpen}
       />
 
       {/* View Switcher - shown when board is selected */}
@@ -641,6 +649,14 @@ function AppContent() {
         onAddAttachment={addAttachment}
         onDeleteAttachment={deleteAttachment}
         onToggleComplete={toggleTaskComplete}
+      />
+
+      {/* Board Notes Drawer */}
+      <BoardNotesDrawer
+        open={isNotesDrawerOpen}
+        onOpenChange={setIsNotesDrawerOpen}
+        board={currentBoard}
+        onSaveNotes={updateBoardNotes}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Eye, Edit3, HelpCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { MarkdownRenderer } from './MarkdownRenderer';
@@ -12,6 +12,8 @@ interface MarkdownEditorProps {
   showHelp?: boolean;
   onKeyDown?: (e: React.KeyboardEvent) => void;
   autoFocus?: boolean;
+  autoResize?: boolean;  // Auto-resize textarea to fit content
+  defaultMode?: 'write' | 'preview';  // Default mode when opening
 }
 
 export function MarkdownEditor({
@@ -23,9 +25,35 @@ export function MarkdownEditor({
   showHelp = true,
   onKeyDown,
   autoFocus = false,
+  autoResize = false,
+  defaultMode,
 }: MarkdownEditorProps) {
-  const [mode, setMode] = useState<'write' | 'preview'>('write');
+  // Determine initial mode: if defaultMode provided use it, otherwise 'preview' if has content, else 'write'
+  const getInitialMode = (): 'write' | 'preview' => {
+    if (defaultMode) return defaultMode;
+    return value.trim() ? 'preview' : 'write';
+  };
+
+  const [mode, setMode] = useState<'write' | 'preview'>(getInitialMode);
   const [showHelpPanel, setShowHelpPanel] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Update mode when value changes from empty to non-empty (or vice versa) only if no defaultMode
+  useEffect(() => {
+    if (!defaultMode) {
+      // Only auto-switch to preview if content was just added and we're in write mode with empty placeholder
+      // Don't auto-switch while user is typing
+    }
+  }, [value, defaultMode]);
+
+  // Auto-resize textarea
+  useEffect(() => {
+    if (autoResize && textareaRef.current && mode === 'write') {
+      const textarea = textareaRef.current;
+      textarea.style.height = 'auto';
+      textarea.style.height = `${Math.max(textarea.scrollHeight, parseInt(minHeight))}px`;
+    }
+  }, [value, autoResize, mode, minHeight]);
 
   return (
     <div className="space-y-2">
@@ -88,13 +116,14 @@ export function MarkdownEditor({
       {/* Editor / Preview */}
       {mode === 'write' ? (
         <textarea
+          ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
           placeholder={placeholder}
           autoFocus={autoFocus}
-          className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background resize-none focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground"
-          style={{ minHeight }}
+          className="w-full px-3 py-2 text-sm rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring placeholder:text-muted-foreground resize-vertical"
+          style={{ minHeight, height: autoResize ? 'auto' : undefined }}
         />
       ) : (
         <div 

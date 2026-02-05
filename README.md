@@ -5,7 +5,7 @@
 # Bordy
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
-![Version](https://img.shields.io/badge/version-2.4.0-green.svg)
+![Version](https://img.shields.io/badge/version-2.5.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 [![Changelog](https://img.shields.io/badge/changelog-view-blue.svg)](CHANGELOG.md)
@@ -28,7 +28,7 @@ A simple, fast, and privacy-focused Kanban board application. All data is stored
 - **Dark/Light Theme** - Switch between themes based on your preference
 - **Import/Export** - Backup and restore your data as JSON with toast notifications
 - **📎 Attachments** - Attach images and files to tasks (up to 10MB per file)
-- **100% Local Storage** - Your data never leaves your browser
+- **📝 Board Notes** - Add Markdown notes to each board with dedicated notes drawer
 - **💻 Responsive Layout** - Centered views with max-width on large screens
 - **No Account Required** - Start using immediately, no sign-up needed
 

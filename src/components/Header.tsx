@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   Tags,
   FileStack,
+  FileText,
   Keyboard,
 } from 'lucide-react';
 import { APP_VERSION } from '../version';
@@ -88,6 +89,9 @@ interface HeaderProps {
   onDialogOpenChange?: (isOpen: boolean) => void;
   // External dialog control
   isNewBoardDialogOpen?: boolean;
+  // Notes drawer control
+  isNotesDrawerOpen?: boolean;
+  setIsNotesDrawerOpen?: (open: boolean) => void;
   setIsNewBoardDialogOpen?: (open: boolean) => void;
 }
 
@@ -138,6 +142,9 @@ export function Header({
   // External dialog control
   isNewBoardDialogOpen,
   setIsNewBoardDialogOpen,
+  // Notes drawer control
+  isNotesDrawerOpen,
+  setIsNotesDrawerOpen,
 }: HeaderProps) {
   const [isCreatingInternal, setIsCreatingInternal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -271,6 +278,17 @@ export function Header({
               >
                 <Tags className="h-4 w-4" />
               </Button>
+              {setIsNotesDrawerOpen && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsNotesDrawerOpen(true)}
+                  title="Board notes"
+                  className={currentBoard?.notes ? 'text-primary' : ''}
+                >
+                  <FileText className="h-4 w-4" />
+                </Button>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
