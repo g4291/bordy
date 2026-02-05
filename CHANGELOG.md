@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.4.0] - 2026-02-05
+
+### Added
+- **Responsive View Centering** - Improved layout on large screens
+  - **Kanban View**: Dynamic centering - columns are centered when they fit on screen, left-aligned with horizontal scroll when they don't
+  - **Calendar View**: Max-width 1400px with auto-centering
+  - **Agenda View**: Max-width 900px with auto-centering
+  - Uses ResizeObserver for responsive behavior when resizing window or adding/removing columns
+
+
 ## [2.3.1] - 2026-02-05
 
 ### Fixed

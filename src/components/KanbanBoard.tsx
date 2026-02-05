@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -103,6 +103,37 @@ export function KanbanBoard({
   const [activeTask, setActiveTask] = useState<Task | null>(null);
   const [activeColumn, setActiveColumn] = useState<Column | null>(null);
   const [dragType, setDragType] = useState<DragType>(null);
+
+  // Container ref for measuring available width
+  const containerRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [shouldCenter, setShouldCenter] = useState(false);
+
+  // Check if content fits in container (no horizontal scroll needed)
+  useEffect(() => {
+    const checkIfFits = () => {
+      if (containerRef.current && contentRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const contentWidth = contentRef.current.scrollWidth;
+        setShouldCenter(contentWidth <= containerWidth);
+      }
+    };
+
+    // Initial check
+    checkIfFits();
+
+    // Set up ResizeObserver for responsive behavior
+    const resizeObserver = new ResizeObserver(checkIfFits);
+    
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    if (contentRef.current) {
+      resizeObserver.observe(contentRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, [columns.length]); // Re-check when column count changes
 
   // New task dialog state (can be controlled externally)
   const [isAddingTaskInternal, setIsAddingTaskInternal] = useState(false);
@@ -298,7 +329,7 @@ export function KanbanBoard({
   };
 
   return (
-    <div className="flex-1 overflow-x-auto overflow-y-hidden p-6 h-full">
+    <div ref={containerRef} className="flex-1 overflow-x-auto overflow-y-hidden p-6 h-full">
       {/* No results message */}
       {noFilteredResults && (
         <div className="flex flex-col items-center justify-center h-[50%] text-center">
@@ -323,7 +354,7 @@ export function KanbanBoard({
           items={columns.map(c => c.id)}
           strategy={horizontalListSortingStrategy}
         >
-          <div className={`flex gap-4 h-full ${noFilteredResults ? 'hidden' : ''}`}>
+          <div ref={contentRef} className={`flex gap-4 h-full ${shouldCenter ? 'justify-center' : ''} ${noFilteredResults ? 'hidden' : ''}`}>
             {columns.map((column) => (
               <KanbanColumn
                 key={column.id}

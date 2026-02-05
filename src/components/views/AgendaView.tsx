@@ -190,7 +190,7 @@ export function AgendaView({ tasks, labels, onTaskClick }: AgendaViewProps) {
   }
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-hidden max-w-[900px] mx-auto w-full">
       {/* Header - fixed at top */}
       <div className="flex items-center justify-between p-4 border-b flex-shrink-0 bg-background">
         <h2 className="text-xl font-semibold">Agenda</h2>

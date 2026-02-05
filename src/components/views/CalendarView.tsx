@@ -182,7 +182,7 @@ export function CalendarView({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex flex-col h-full overflow-hidden">
+      <div className="flex flex-col h-full overflow-hidden max-w-[1400px] mx-auto w-full">
         {/* Calendar Header - fixed */}
         <div className="flex items-center justify-between p-4 flex-shrink-0 bg-background border-b">
           {/* Navigation */}
