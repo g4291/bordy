@@ -102,7 +102,7 @@ Examples:
             )}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={handleClose}>
               Close
             </Button>
             <Button onClick={handleSave} disabled={!hasChanges}>

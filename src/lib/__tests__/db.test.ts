@@ -138,6 +138,68 @@ describe('Database Operations', () => {
         expect(await getLabelsByBoard('board-1')).toHaveLength(0);
       });
     });
+
+    describe('updateBoardNotes', () => {
+      it('should save and retrieve board with notes', async () => {
+        const board = createTestBoard('board-1', 'My Board');
+        board.notes = '# Project Notes\n\nThis is a test.';
+        
+        await saveBoard(board);
+        const retrieved = await getBoard('board-1');
+        
+        expect(retrieved).toBeDefined();
+        expect(retrieved?.notes).toBe('# Project Notes\n\nThis is a test.');
+      });
+
+      it('should update existing board notes', async () => {
+        const board = createTestBoard('board-1', 'My Board');
+        board.notes = 'Initial notes';
+        await saveBoard(board);
+        
+        // Update notes
+        const updatedBoard = { ...board, notes: 'Updated notes', updatedAt: Date.now() };
+        await saveBoard(updatedBoard);
+        
+        const retrieved = await getBoard('board-1');
+        expect(retrieved?.notes).toBe('Updated notes');
+      });
+
+      it('should handle board without notes (undefined)', async () => {
+        const board = createTestBoard('board-1', 'My Board');
+        // notes is undefined by default
+        
+        await saveBoard(board);
+        const retrieved = await getBoard('board-1');
+        
+        expect(retrieved).toBeDefined();
+        expect(retrieved?.notes).toBeUndefined();
+      });
+
+      it('should handle empty string notes', async () => {
+        const board = createTestBoard('board-1', 'My Board');
+        board.notes = '';
+        
+        await saveBoard(board);
+        const retrieved = await getBoard('board-1');
+        
+        expect(retrieved?.notes).toBe('');
+      });
+
+      it('should preserve notes when deleting board columns/tasks', async () => {
+        const board = createTestBoard('board-1', 'My Board');
+        board.notes = 'Important notes';
+        await saveBoard(board);
+        
+        // Add and delete column
+        const column = createTestColumn('col-1', 'board-1');
+        await saveColumn(column);
+        await deleteColumn('col-1');
+        
+        // Board notes should still exist
+        const retrieved = await getBoard('board-1');
+        expect(retrieved?.notes).toBe('Important notes');
+      });
+    });
   });
 
   describe('Column Operations', () => {

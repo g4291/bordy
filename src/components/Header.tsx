@@ -285,6 +285,7 @@ export function Header({
                   onClick={() => setIsNotesDrawerOpen(true)}
                   title="Board notes"
                   className={currentBoard?.notes ? 'text-primary' : ''}
+                  data-testid="board-notes-button"
                 >
                   <FileText className="h-4 w-4" />
                 </Button>
