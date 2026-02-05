@@ -48,6 +48,88 @@ test.describe('Task Management', () => {
     }
   });
 
+  test('should create task with due date via N shortcut', async ({ page }) => {
+    // Make sure we have a board with columns first
+    const column = page.locator('[data-testid="column"]').first();
+    
+    if (await column.isVisible({ timeout: 3000 })) {
+      // Press N for new task
+      await page.keyboard.press('n');
+      
+      // Quick add dialog should appear
+      const dialog = page.locator('[role="dialog"]:has-text("Quick Add Task")');
+      await expect(dialog).toBeVisible({ timeout: 3000 });
+      
+      // Fill task title
+      await dialog.locator('input[type="text"], input:not([type])').first().fill('Task With Due Date');
+      
+      // Set due date to tomorrow
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dueDateStr = tomorrow.toISOString().split('T')[0]; // YYYY-MM-DD format
+      await dialog.locator('input[type="date"]').fill(dueDateStr);
+      
+      // Submit
+      await page.click('[role="dialog"] button:has-text("Add Task")');
+      
+      await page.waitForTimeout(500);
+      
+      // Verify task was created
+      const taskCard = page.locator('[data-testid="task-title"]:has-text("Task With Due Date")');
+      await expect(taskCard).toBeVisible();
+      
+      // Open task detail to verify due date was saved
+      await taskCard.click();
+      
+      const detailDialog = page.locator('[role="dialog"]');
+      await expect(detailDialog).toBeVisible({ timeout: 3000 });
+      
+      // Due date should be displayed in the task detail
+      // The due date badge/info should show tomorrow's date
+      const dueDateElement = detailDialog.locator('[data-testid="task-due-date"], text=/\d{1,2}[.\/\-]\d{1,2}[.\/\-]\d{2,4}|tomorrow|zítra/i').first();
+      await expect(dueDateElement).toBeVisible({ timeout: 3000 });
+    }
+  });
+
+  test('should create task with due date via column button', async ({ page }) => {
+    // Find "Add task" button in first column
+    const addTaskButton = page.locator('[data-testid="add-task-button"]').first();
+    
+    if (await addTaskButton.isVisible({ timeout: 3000 })) {
+      await addTaskButton.click();
+      
+      // Fill in task title
+      const taskInput = page.locator('[data-testid="add-task-title-input"]');
+      await expect(taskInput).toBeVisible();
+      await taskInput.fill('Column Task With Due Date');
+      
+      // Set due date
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      const dueDateStr = nextWeek.toISOString().split('T')[0];
+      await page.locator('[data-testid="add-task-date-input"]').fill(dueDateStr);
+      
+      // Submit
+      await page.click('[data-testid="add-task-submit"]');
+      
+      await page.waitForTimeout(500);
+      
+      // Verify task was created
+      const taskCard = page.locator('[data-testid="task-title"]:has-text("Column Task With Due Date")');
+      await expect(taskCard).toBeVisible({ timeout: 5000 });
+      
+      // Open task detail to verify due date
+      await taskCard.click();
+      
+      const detailDialog = page.locator('[role="dialog"]');
+      await expect(detailDialog).toBeVisible({ timeout: 3000 });
+      
+      // Due date should be visible
+      const dueDateElement = detailDialog.locator('[data-testid="task-due-date"], text=/\d{1,2}[.\/\-]\d{1,2}[.\/\-]\d{2,4}/i').first();
+      await expect(dueDateElement).toBeVisible({ timeout: 3000 });
+    }
+  });
+
   test('should open task detail on click', async ({ page }) => {
     const taskCard = page.locator('[data-testid="task-card"]').first();
     

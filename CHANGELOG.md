@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [2.3.1] - 2026-02-05
+
+### Fixed
+- **Quick Add Task due date not saving** - Fixed a bug where due date entered in the Quick Add Task dialog (opened via `N` keyboard shortcut) was not being saved. The `dueDate` parameter was missing from the `onCreateTask` call.
+
+### Added
+- **E2E tests for due date creation** - Added Playwright tests to verify due date is correctly saved when creating tasks via:
+  - `N` keyboard shortcut (Quick Add dialog)
+  - Column "Add task" button
+
 
 ## [2.3.0] - 2026-02-05
 

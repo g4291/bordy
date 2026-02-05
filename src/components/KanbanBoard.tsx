@@ -40,7 +40,7 @@ interface KanbanBoardProps {
   onUpdateColumn: (id: string, updates: { title?: string; color?: string; isCompleteColumn?: boolean }) => void;
   onDeleteColumn: (id: string) => void;
   onReorderColumns: (columns: Column[]) => void;
-  onCreateTask: (columnId: string, title: string, description?: string) => void;
+  onCreateTask: (columnId: string, title: string, description?: string, dueDate?: number) => void;
   onUpdateTask: (id: string, updates: Partial<Pick<Task, 'title' | 'description' | 'labelIds' | 'dueDate' | 'subtasks' | 'priority' | 'completed' | 'completedAt'>>) => void;
   onDeleteTask: (id: string) => void;
   onMoveTask: (taskId: string, sourceColumnId: string, targetColumnId: string, newIndex: number) => void;
@@ -140,7 +140,8 @@ export function KanbanBoard({
       onCreateTask(
         columns[0].id,
         newTaskTitle.trim(),
-        undefined
+        undefined,
+        newTaskDueDate ? new Date(newTaskDueDate).getTime() : undefined
       );
       setNewTaskTitle('');
       setNewTaskDueDate('');
