@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, MoreVertical, AlertTriangle, Calendar, Clock, Paperclip, Check } from 'lucide-react';
+import { MoreVertical, AlertTriangle, Calendar, Clock, Paperclip, Check, GripVertical } from 'lucide-react';
 import { Task, Label, Comment, Attachment, PRIORITY_CONFIG } from '../types';
 import { Card, CardContent } from './ui/card';
 import { Button } from './ui/button';
@@ -64,16 +64,18 @@ export function TaskCard({
     isDragging,
   } = useSortable({ id: task.id, data: { type: 'task', task } });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    touchAction: 'none', // Important for touch devices
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open if clicking on drag handle, dropdown, or checkbox
+    // Don't open detail if dragging, clicking on dropdown, or checkbox
+    if (isDragging) return;
     const target = e.target as HTMLElement;
-    if (target.closest('[data-drag-handle]') || target.closest('[data-dropdown]') || target.closest('[data-complete-checkbox]')) {
+    if (target.closest('[data-dropdown]') || target.closest('[data-complete-checkbox]')) {
       return;
     }
     setIsDetailOpen(true);
@@ -194,11 +196,13 @@ export function TaskCard({
       <Card
         ref={setNodeRef}
         style={style}
-        className={cardClassName}
+        className={`${cardClassName} cursor-grab active:cursor-grabbing`}
         onClick={handleCardClick}
         data-testid="task-card"
         data-task-id={task.id}
         data-completed={task.completed}
+        {...attributes}
+        {...listeners}
       >
         <CardContent className="p-3">
           {/* Labels row */}
@@ -229,17 +233,10 @@ export function TaskCard({
               </div>
             </div>
 
-            {/* Drag handle */}
-            <button
-              data-drag-handle
-              data-testid="task-drag-handle"
-              {...attributes}
-              {...listeners}
-              className="mt-0.5 text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-              onClick={(e) => e.stopPropagation()}
-            >
+            {/* Visual drag indicator */}
+            <div className="mt-0.5 text-muted-foreground/50">
               <GripVertical className="h-4 w-4" />
-            </button>
+            </div>
 
             <div className="flex-1 min-w-0">
               <p 

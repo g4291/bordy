@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+
+## [2.3.0] - 2026-02-05
+
+### Changed
+- **Full Card Drag & Drop** - Tasks can now be dragged by clicking anywhere on the card
+  - Previously required clicking the grip icon handle
+  - Improved UX especially on touch devices with `touch-action: none`
+  - Cursor changes to grab/grabbing for visual feedback
+  - Grip icon remains as visual indicator
+  - Click-to-open detail dialog still works (drag vs click detection)
+
 ## [2.2.0] - 2026-02-04
 
 ### Added

@@ -5,7 +5,7 @@
 # Bordy
 A simple, fast, and privacy-focused Kanban board application. All data is stored locally in your browser using IndexedDB - no server, no account required.
 
-![Version](https://img.shields.io/badge/version-2.1.2-green.svg)
+![Version](https://img.shields.io/badge/version-2.3.0-green.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)
 ![React](https://img.shields.io/badge/React-18-61dafb.svg)
 [![Changelog](https://img.shields.io/badge/changelog-view-blue.svg)](CHANGELOG.md)
